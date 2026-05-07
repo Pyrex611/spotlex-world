@@ -223,7 +223,7 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
       <MapContainer center={[9.0820, 8.6753]} zoom={6} zoomControl={false} style={{ height: '100%', width: '100%', background: '#f8fafc' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         
-        {/* Render Live Moving Trucks */}
+        {/* Render Live Vehicles */}
         {Object.values(activeTrucks).map((truck, idx) => (
           <Marker key={`truck-${idx}`} position={[truck.lat, truck.lng]} icon={LiveTruckIcon} zIndexOffset={1000}>
             <Tooltip direction="top" offset={[0, -20]} className="premium-tooltip-admin" permanent>

@@ -122,7 +122,7 @@ export default async function LandingPage() {
       
       {/* Footer */}
       <footer className="border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} Spotless World. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} SpotlexWorld. All rights reserved.</p>
       </footer>
     </div>
   )

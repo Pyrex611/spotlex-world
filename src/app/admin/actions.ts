@@ -36,7 +36,6 @@ export async function updateClientProfile(formData: FormData) {
   if (error) throw new Error(error.message)
   
   revalidatePath('/admin/clients')
-  redirect('/admin/clients')
 }
 
 export async function updatePropertySchedule(propertyId: string, clientId: string, dayOfWeek: number) {
@@ -49,6 +48,5 @@ export async function updatePropertySchedule(propertyId: string, clientId: strin
 
   if (error) throw new Error("Failed to update schedule.")
   
-  // Revalidate to instantly update the UI
   revalidatePath(`/admin/clients/${clientId}`)
 }

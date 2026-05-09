@@ -4,14 +4,22 @@ import Link from 'next/link'
 import BrandLogo from '@/components/BrandLogo'
 import { updateClientProfile, updatePropertySchedule } from '@/app/admin/actions'
 
-const DAYS =['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-export default async function EditClientPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function EditClientPage({ params }: PageProps) {
+  // Next.js 16 requirement: await params before accessing properties
+  const { id } = await params
+  
   const supabase = await createClient()
+  
   const { data: client } = await supabase
     .from('profiles')
     .select('*, properties(*)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!client) {
@@ -23,34 +31,34 @@ export default async function EditClientPage({ params }: { params: { id: string 
     )
   }
 
-  // Inline Server Action for assigning collection days
+  // Handle schedule updates via a dedicated inline server action
   const handleScheduleUpdate = async (formData: FormData) => {
     'use server'
     const propId = formData.get('propertyId') as string
     const dayRaw = formData.get('dayOfWeek')
     if (dayRaw !== null && dayRaw !== '') {
-      await updatePropertySchedule(propId, params.id, parseInt(dayRaw as string))
+      await updatePropertySchedule(propId, id, parseInt(dayRaw as string))
     }
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 p-4 md:p-0">
       <div className="flex items-center gap-6">
-        <Link href="/admin/dashboard" className="p-3 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-900 hover:text-white transition-all text-slate-600">
+        <Link href="/admin/clients" className="p-3 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-900 hover:text-white transition-all text-slate-600">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <BrandLogo />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Profile Modification Editor */}
+        {/* Profile Modification Section */}
         <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-5">
              <ShieldCheck className="w-32 h-32 text-slate-900" />
           </div>
           
           <h1 className="text-2xl font-black text-slate-900 mb-2">Modify Profile</h1>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">Ref ID: {client.id.split('-')[0]}</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">System ID: {client.id.split('-')[0]}</p>
           
           <form action={updateClientProfile} className="space-y-8 relative z-10">
             <input type="hidden" name="id" value={client.id} />
@@ -91,13 +99,13 @@ export default async function EditClientPage({ params }: { params: { id: string 
           </form>
         </div>
 
-        {/* Scheduling Assignment Editor */}
+        {/* Collection Scheduling Section */}
         <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10">
           <div className="flex items-center gap-4 mb-10">
             <div className="bg-green-100 p-3 rounded-2xl">
               <CalendarDays className="w-6 h-6 text-green-700" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Collection Schedule</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deployment Schedule</h1>
           </div>
 
           <div className="space-y-6">
@@ -107,7 +115,7 @@ export default async function EditClientPage({ params }: { params: { id: string 
                 
                 <div className="flex items-start gap-3 mb-6">
                    <MapPin className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
-                   <p className="text-sm font-bold text-slate-700 leading-relaxed pr-8">
+                   <p className="text-sm font-bold text-slate-700 leading-relaxed">
                      {prop.address_text}
                    </p>
                 </div>
@@ -121,7 +129,7 @@ export default async function EditClientPage({ params }: { params: { id: string 
                       required
                       className="w-full sm:flex-1 p-4 rounded-xl border-none bg-white shadow-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-green-600 appearance-none"
                     >
-                      <option value="" disabled>Select Day of the Week...</option>
+                      <option value="" disabled>Select Day...</option>
                       {DAYS.map((day, idx) => (
                         <option key={idx} value={idx}>{day}</option>
                       ))}
@@ -130,7 +138,6 @@ export default async function EditClientPage({ params }: { params: { id: string 
                     <button 
                       type="submit" 
                       className="w-full sm:w-auto bg-green-600 text-white p-4 rounded-xl shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center"
-                      title="Save Schedule"
                     >
                       <Save size={20} />
                     </button>
@@ -139,4 +146,14 @@ export default async function EditClientPage({ params }: { params: { id: string 
               </form>
             ))}
             
-            {(!client.properties || (client.properties as any
+            {(!client.properties || (client.properties as any[]).length === 0) && (
+              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Linked Property</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -14,10 +14,8 @@ interface DriverMapWrapperProps {
 }
 
 export default function DriverMapWrapper({ collections, assistants, driverId, driverName }: DriverMapWrapperProps) {
-  const[isShiftStarted, setIsShiftStarted] = useState(false)
+  const [isShiftStarted, setIsShiftStarted] = useState(false)
   const [selectedAssistants, setSelectedAssistants] = useState<string[]>([])
-  
-  // React 19 Standard for async UI transitions
   const [isPending, startTransition] = useTransition()
 
   const RouteMap = useMemo(() => dynamic(() => import('./RouteMap'), { 
@@ -61,7 +59,7 @@ export default function DriverMapWrapper({ collections, assistants, driverId, dr
           </div>
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Shift Initialization</h2>
-            <p className="text-slate-500 text-sm mt-2">Select your crew members for today's route. You can select multiple assistants or proceed alone.</p>
+            <p className="text-slate-500 text-sm mt-2">Select your crew members for today&apos;s route. You can select multiple assistants or proceed alone.</p>
           </div>
 
           <div className="space-y-4 text-left">

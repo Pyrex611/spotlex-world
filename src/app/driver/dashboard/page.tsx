@@ -5,7 +5,10 @@ import { Target, CheckCircle2, Clock } from 'lucide-react'
 
 export default async function DriverDashboardPage() {
   const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
+  const todayDate = new Date()
+  const todayStr = todayDate.toISOString().split('T')[0]
+  const dayOfWeek = todayDate.getDay() // 0 = Sunday, 1 = Monday, etc.
+  
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: profile } = await supabase
@@ -14,11 +17,42 @@ export default async function DriverDashboardPage() {
     .eq('id', user?.id)
     .single()
 
+  // --- 1. AUTO-GENERATOR LOGIC ---
+  // Find all properties scheduled for today's day of the week
+  const { data: scheduledProps } = await supabase
+    .from('properties')
+    .select('id')
+    .eq('collection_day_of_week', dayOfWeek)
+
+  if (scheduledProps && scheduledProps.length > 0) {
+    // Check which ones already have a collection generated for today
+    const { data: existingCols } = await supabase
+      .from('collections')
+      .select('property_id')
+      .eq('scheduled_date', todayStr)
+
+    const existingIds = existingCols?.map(c => c.property_id) ||[]
+    const missingProps = scheduledProps.filter(p => !existingIds.includes(p.id))
+
+    // Generate missing collections instantly
+    if (missingProps.length > 0) {
+      const inserts = missingProps.map(p => ({
+        property_id: p.id,
+        scheduled_date: todayStr,
+        status: 'pending'
+      }))
+      await supabase.from('collections').insert(inserts)
+    }
+  }
+  // -------------------------------
+
+  // 2. Fetch collections that are unassigned OR assigned to this driver
   const { data: collections } = await supabase
     .from('collections')
     .select(`
       id,
       status,
+      driver_id,
       properties (
         id,
         address_text,
@@ -26,8 +60,8 @@ export default async function DriverDashboardPage() {
         profiles ( full_name, email, phone )
       )
     `)
-    .eq('scheduled_date', today)
-    .eq('driver_id', user?.id)
+    .eq('scheduled_date', todayStr)
+    .or(`driver_id.is.null,driver_id.eq.${user?.id}`)
 
   const { data: assistants } = await supabase
     .from('profiles')

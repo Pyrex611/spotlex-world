@@ -1,23 +1,30 @@
-import LogoutButton from '@/components/LogoutButton'
-import { Truck } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
 import { ReactNode } from 'react'
 
-export default function DriverLayout({ children }: { children: ReactNode }) {
+export default async function DriverLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-green-700">
-            <Truck className="w-6 h-6" />
-            <h1 className="text-xl font-bold">Driver Terminal</h1>
-          </div>
-          <nav>
-            <LogoutButton />
-          </nav>
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
         </div>
       </header>
       
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className="flex-1 w-full animate-in fade-in duration-500">
         {children}
       </main>
     </div>

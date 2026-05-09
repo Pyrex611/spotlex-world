@@ -1,9 +1,10 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useTransition } from 'react'
 import { Truck, Play, Loader2, UserPlus, CheckSquare, Square } from 'lucide-react'
-import { startDriverShift } from '@/app/driver/actions'
+import { initializeDriverShift } from '@/app/driver/actions'
+import { toast } from 'sonner'
 
 interface DriverMapWrapperProps {
   collections: any[];
@@ -13,9 +14,11 @@ interface DriverMapWrapperProps {
 }
 
 export default function DriverMapWrapper({ collections, assistants, driverId, driverName }: DriverMapWrapperProps) {
-  const [isShiftStarted, setIsShiftStarted] = useState(false)
-  const[selectedAssistants, setSelectedAssistants] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
+  const[isShiftStarted, setIsShiftStarted] = useState(false)
+  const [selectedAssistants, setSelectedAssistants] = useState<string[]>([])
+  
+  // React 19 Standard for async UI transitions
+  const [isPending, startTransition] = useTransition()
 
   const RouteMap = useMemo(() => dynamic(() => import('./RouteMap'), { 
       ssr: false,
@@ -33,19 +36,20 @@ export default function DriverMapWrapper({ collections, assistants, driverId, dr
     )
   }
 
-  const handleStartShift = async () => {
-    setLoading(true)
-    try {
-      const colIds = collections.map(c => c.id)
+  const handleStartShift = () => {
+    const colIds = collections.map(c => c.id)
+    
+    startTransition(async () => {
       if (colIds.length > 0) {
-        await startDriverShift(colIds, selectedAssistants)
+        const result = await initializeDriverShift(colIds, selectedAssistants)
+        if (result.error) {
+          toast.error(result.error)
+          return
+        }
       }
       setIsShiftStarted(true)
-    } catch (e) {
-      alert("Failed to sync shift.")
-    } finally {
-      setLoading(false)
-    }
+      toast.success("Shift Initialized Successfully.")
+    })
   }
 
   if (!isShiftStarted) {
@@ -84,11 +88,11 @@ export default function DriverMapWrapper({ collections, assistants, driverId, dr
           </div>
 
           <button 
-            disabled={loading}
+            disabled={isPending}
             onClick={handleStartShift}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-green-200 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Play className="w-5 h-5 fill-white" /> Start Shift</>}
+            {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Play className="w-5 h-5 fill-white" /> Start Shift</>}
           </button>
         </div>
       </div>

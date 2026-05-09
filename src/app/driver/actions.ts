@@ -4,54 +4,53 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 /**
- * Saves or updates a client's property location using PostGIS geometry.
+ * Initializes a driver's shift by assigning the selected assistants to today's collections.
+ * Renamed to bust the Turbopack cache.
  */
-export async function savePropertyLocation(address: string, lat: string, lon: string) {
+export async function initializeDriverShift(collectionIds: string[], assistantIds: string[]) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized access.')
-
-  // PostGIS format: POINT(longitude latitude)
-  const pointGeometry = `POINT(${lon} ${lat})`
-
+  
   const { error } = await supabase
-    .from('properties')
-    .insert({
-      client_id: user.id,
-      address_text: address,
-      location: pointGeometry,
-      collection_day_of_week: null 
-    })
+    .from('collections')
+    .update({ assistant_ids: assistantIds })
+    .in('id', collectionIds)
 
   if (error) {
-    console.error('[DB Error] Location Save:', error)
-    throw new Error('Failed to save property location.')
+    console.error('[DB Error] Shift Init:', error)
+    return { error: 'Failed to synchronize shift data with the server.' }
   }
-
-  revalidatePath('/client/dashboard')
+  
+  revalidatePath('/driver/dashboard')
+  return { success: true }
 }
 
 /**
- * Submits feedback (rating and remark) for a completed waste collection event.
+ * Logs the final outcome (Collected, No Answer, etc.) and attaches photo proof.
+ * Renamed to bust the Turbopack cache.
  */
-export async function submitCollectionFeedback(collectionId: string, rating: number, remark: string) {
+export async function submitCollectionOutcome(
+  collectionId: string, 
+  status: 'collected' | 'no_answer' | 'other', 
+  reason?: string, 
+  photoUrl?: string
+) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized access.')
-
   const { error } = await supabase
     .from('collections')
     .update({ 
-      client_rating: rating,
-      client_remark: remark
+      status: status,
+      outcome_reason: reason || null,
+      proof_photo_url: photoUrl || null,
+      updated_at: new Date().toISOString()
     })
     .eq('id', collectionId)
 
   if (error) {
-    console.error('[DB Error] Feedback Submit:', error)
-    throw new Error("Failed to submit feedback.")
+    console.error('[DB Error] Outcome Submit:', error)
+    return { error: 'Failed to record the collection outcome.' }
   }
   
-  revalidatePath('/client/dashboard')
+  revalidatePath('/driver/dashboard')
+  return { success: true }
 }

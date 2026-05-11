@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight, Star, Image as ImageIcon } from 'lucide-react'
+import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight, Star, Image as ImageIcon, MessageSquare } from 'lucide-react'
 import AdminMapWrapper from '@/components/admin/AdminMapWrapper'
 import Link from 'next/link'
 import 'leaflet/dist/leaflet.css'
@@ -11,6 +11,7 @@ export default async function AdminDashboardPage() {
   const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
   const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
   
+  // Added client_remark to the select query for complete Quality Control
   const { data: activeCollections } = await supabase
     .from('collections')
     .select(`
@@ -20,6 +21,7 @@ export default async function AdminDashboardPage() {
       outcome_reason,
       proof_photo_url,
       client_rating,
+      client_remark,
       assistant_ids,
       driver:profiles!collections_driver_id_fkey(full_name)
     `)
@@ -33,7 +35,7 @@ export default async function AdminDashboardPage() {
     .not('location', 'is', null)
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
@@ -58,7 +60,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </Link>
-        {/* FIXED: Today's Target -> Today&apos;s Target */}
         <StatCard title="Today&apos;s Target" value={stats?.total_scheduled || 0} icon={<ClipboardList className="w-6 h-6" />} color="bg-slate-100 text-slate-900" />
         <StatCard title="Completed" value={stats?.total_fulfilled || 0} icon={<CheckCircle2 className="w-6 h-6" />} color="bg-green-100 text-green-700" />
         <StatCard title="Active Shifts" value={stats?.active_drivers || 0} icon={<Truck className="w-6 h-6" />} color="bg-orange-100 text-orange-700" />
@@ -87,21 +88,27 @@ export default async function AdminDashboardPage() {
                 <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${col.status === 'collected' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
                 <div className="flex justify-between items-center mb-1">
                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SHIFT-LOG</p>
-                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${col.status === 'collected' ? 'bg-green-600 text-white' : col.status === 'no_answer' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
+                     col.status === 'collected' ? 'bg-green-600 text-white' : 
+                     col.status === 'no_answer' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-500'
+                   }`}>
                      {col.status.replace('_', ' ')}
                    </span>
                 </div>
                 <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
                 <p className="text-[10px] font-medium text-slate-400">Crew Size: 1 Driver + {col.assistant_ids?.length || 0} Assistant(s)</p>
 
+                {/* Quality Control Audit Info */}
                 {(col.outcome_reason || col.proof_photo_url || col.client_rating) && (
                   <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
                     {col.outcome_reason && (
-                      <p className="text-[10px] font-medium text-slate-600 bg-orange-50 p-2 rounded-lg border border-orange-100"><strong className="text-orange-800">Note:</strong> {col.outcome_reason}</p>
+                      <p className="text-[10px] font-medium text-slate-600 bg-orange-50 p-2 rounded-lg border border-orange-100">
+                        <strong className="text-orange-800">Note:</strong> {col.outcome_reason}
+                      </p>
                     )}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
                       {col.proof_photo_url && (
-                        <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 hover:text-green-800 bg-green-50 px-2 py-1 rounded-md">
+                        <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 hover:text-green-800 bg-green-50 px-2 py-1 rounded-md transition-colors">
                           <ImageIcon className="w-3 h-3" /> Proof Photo
                         </a>
                       )}
@@ -111,6 +118,12 @@ export default async function AdminDashboardPage() {
                         </div>
                       )}
                     </div>
+                    {col.client_remark && (
+                      <p className="text-[10px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-start gap-1">
+                        <MessageSquare className="w-3 h-3 text-slate-400 mt-0.5 flex-shrink-0" />
+                        <span className="italic">"{col.client_remark}"</span>
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

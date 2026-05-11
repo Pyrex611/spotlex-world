@@ -144,7 +144,7 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
 
     if (isOffline) {
       const queue: OfflineAction[] = JSON.parse(localStorage.getItem('spotlex_offline_queue') || '[]');
-      queue.push({ colId: col.id, clientName: col.properties.profiles.full_name, address: col.properties.address_text, timestamp: Date.now() });
+      queue.push({ colId: col.id, clientName: '', address: '', email: '', timestamp: Date.now() }); // Cleaned up queue payload
       localStorage.setItem('spotlex_offline_queue', JSON.stringify(queue));
       toast.info("Offline: Action logged to device queue.");
       setActionLoading(null);
@@ -156,13 +156,11 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
       if (error) throw error;
       toast.success("Arrival logged successfully.");
 
+      // Clean, secure API call. No PII sent from browser!
       await fetch('/api/notify-arrival', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          clientName: col.properties.profiles.full_name, 
-          address: col.properties.address_text 
-        })
+        body: JSON.stringify({ collectionId: col.id })
       });
     } catch (e) {
       toast.error("Network error. Try again.");

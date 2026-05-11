@@ -1,19 +1,46 @@
 import { resend } from '@/lib/resend';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { clientName, address } = await req.json();
+    const { collectionId } = await req.json();
 
-    // Secure Enterprise Insight: 
-    // In dev mode, Resend Free Tier only allows sending to the verified email domain.
-    // Instead of using the client's actual email, we push this to the test endpoint.
-    const testDeliveryEmail = process.env.TEST_DELIVERY_EMAIL || 'delivered@resend.dev';
+    if (!collectionId) {
+      return NextResponse.json({ error: 'Collection ID is required' }, { status: 400 });
+    }
+
+    const supabase = await createClient();
+
+    // Securely fetch the exact client data using the collection ID
+    const { data: collection, error: fetchError } = await supabase
+      .from('collections')
+      .select(`
+        properties (
+          address_text,
+          profiles ( full_name, email )
+        )
+      `)
+      .eq('id', collectionId)
+      .single();
+
+    if (fetchError || !collection) {
+      throw new Error('Failed to retrieve client routing data.');
+    }
+
+    const clientName = (collection.properties as any).profiles.full_name;
+    const clientEmail = (collection.properties as any).profiles.email;
+    const address = (collection.properties as any).address_text;
+
+    // Resend Sandbox check for development vs production
+    const targetEmail = process.env.NODE_ENV === 'production' && process.env.RESEND_DOMAIN_VERIFIED === 'true' 
+      ? clientEmail 
+      : (process.env.TEST_DELIVERY_EMAIL || 'delivered@resend.dev');
 
     const { data, error } = await resend.emails.send({
-      from: 'SpotlexWorld <onboarding@resend.dev>',
-      to: [testDeliveryEmail],
-      subject: `🚛 SpotlexWorld: We are at your gate, ${clientName}!`,
+      from: 'SpotlexWorld <onboarding@resend.dev>', // Update upon domain verification
+      to:[targetEmail],
+      subject: `🚛 SpotlexWorld: We are at your gate, ${clientName.split(' ')[0]}!`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; background-color: #ffffff;">
           <div style="background-color: #059669; padding: 40px; text-align: center;">
@@ -32,11 +59,9 @@ export async function POST(req: Request) {
       `
     });
 
-    if (error) {
-      return NextResponse.json({ error }, { status: 500 });
-    }
-
+    if (error) return NextResponse.json({ error }, { status: 500 });
     return NextResponse.json({ success: true, data });
+
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

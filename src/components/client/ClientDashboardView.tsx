@@ -31,10 +31,8 @@ export default function ClientDashboardView({ property, history }: { property: a
   
   const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null)
   const [rating, setRating] = useState(0)
-  const[remark, setRemark] = useState('')
-  
-  // React standard for handling asynchronous server actions smoothly
-  const[isPending, startTransition] = useTransition()
+  const [remark, setRemark] = useState('')
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     if (!property?.id) return;
@@ -50,16 +48,11 @@ export default function ClientDashboardView({ property, history }: { property: a
       (payload) => {
         if (payload.new.status === 'arrived') {
           setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
-          toast.success("🚛 Truck Arrived!", { 
-            description: "Our team is at your gate.", 
-            duration: 15000 
-          });
+          toast.success("🚛 Truck Arrived!", { description: "Our team is at your gate.", duration: 15000 });
           setTimeout(() => setArrivalNotification(null), 20000)
         }
         if (payload.new.status === 'collected') {
-          toast.success("✅ Waste Collected!", { 
-            description: "Thank you for using SpotlexWorld." 
-          });
+          toast.success("✅ Waste Collected!", { description: "Thank you for using SpotlexWorld." });
           setTimeout(() => window.location.reload(), 2000);
         }
       })
@@ -76,7 +69,6 @@ export default function ClientDashboardView({ property, history }: { property: a
 
     startTransition(async () => {
       const response = await submitClientFeedback(colId, rating, remark);
-      
       if (response.error) {
         toast.error(response.error);
       } else {
@@ -145,7 +137,7 @@ export default function ClientDashboardView({ property, history }: { property: a
         
         <div className="p-4 md:p-10 space-y-6">
           {history?.map((col: any) => (
-            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
+            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between transition-colors hover:border-green-200">
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-slate-900">
@@ -174,7 +166,7 @@ export default function ClientDashboardView({ property, history }: { property: a
 
               <div className="flex-1 lg:max-w-xs w-full">
                 {col.client_rating ? (
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
                     <StarRating value={col.client_rating} disabled />
                     {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}

@@ -72,13 +72,13 @@ export default async function LandingPage() {
                     href="/auth/register" 
                     className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200"
                   >
-                    Register as Resident
+                    Sign Up
                   </Link>
                   <Link 
                     href="/auth/login" 
                     className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg transition"
                   >
-                    Team Login
+                    Sign In
                   </Link>
                 </>
               )}

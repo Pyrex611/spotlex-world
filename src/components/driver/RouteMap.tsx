@@ -21,7 +21,7 @@ const DriverLiveIcon = L.divIcon({
   iconAnchor: [8, 8]
 })
 
-function parsePostGISPoint(locationStr: string | null): [number, number] {
+function parsePostGISPoint(locationStr: string | null):[number, number] {
   if (!locationStr || !locationStr.startsWith('POINT(')) return[6.5244, 3.3792];
   const cleanStr = locationStr.slice(6, -1);
   const parts = cleanStr.split(' ');
@@ -29,34 +29,36 @@ function parsePostGISPoint(locationStr: string | null): [number, number] {
   return [parseFloat(parts[1]), parseFloat(parts[0])];
 }
 
-function MapController({ coords, isFullscreen }: { coords: [number, number][], isFullscreen: boolean }) {
+function MapController({ coords, isFullscreen }: { coords:[number, number][], isFullscreen: boolean }) {
   const map = useMap()
   useEffect(() => {
     const timer = setTimeout(() => { map.invalidateSize() }, 250);
     if (coords.length > 0) {
-      map.fitBounds(L.latLngBounds(coords), { padding:[50, 50] })
+      map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] })
     }
     return () => clearTimeout(timer);
   },[coords, map, isFullscreen])
   return null
 }
 
+// Enterprise Fix: Stripped all PII out. We only need the ID and timestamp.
 interface OfflineAction {
-  colId: string; clientName: string; address: string; timestamp: number;
+  colId: string; 
+  timestamp: number;
 }
 
 export default function RouteMap({ collections, driverId, driverName }: { collections: any[], driverId: string, driverName: string }) {
-  const[localCollections, setLocalCollections] = useState(collections)
+  const [localCollections, setLocalCollections] = useState(collections)
   const [routeData, setRouteData] = useState<[number, number][]>([])
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const[actionLoading, setActionLoading] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const[driverLocation, setDriverLocation] = useState<[number, number] | null>(null)
-  const[isOffline, setIsOffline] = useState(false)
+  const [driverLocation, setDriverLocation] = useState<[number, number] | null>(null)
+  const [isOffline, setIsOffline] = useState(false)
   
-  const [outcomeModal, setOutcomeModal] = useState<any | null>(null)
+  const[outcomeModal, setOutcomeModal] = useState<any | null>(null)
   const [outcomeType, setOutcomeType] = useState<'collected' | 'no_answer' | 'other'>('collected')
-  const [outcomeFile, setOutcomeFile] = useState<File | null>(null)
-  const [outcomeReason, setOutcomeReason] = useState('')
+  const[outcomeFile, setOutcomeFile] = useState<File | null>(null)
+  const[outcomeReason, setOutcomeReason] = useState('')
   const [isSubmittingOutcome, setIsSubmittingOutcome] = useState(false)
 
   const supabase = createClient()
@@ -97,10 +99,11 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
     for (const action of queue) {
       try {
         await supabase.from('collections').update({ status: 'arrived' }).eq('id', action.colId);
+        // Clean API call using only the collection ID
         await fetch('/api/notify-arrival', { 
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientName: action.clientName, address: action.address }) 
+          body: JSON.stringify({ collectionId: action.colId }) 
         });
       } catch (e) { console.error("Sync failed", e); }
     }
@@ -117,11 +120,11 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
     return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   },[processOfflineQueue]);
 
-  const stopCoords = useMemo(() => localCollections.map(col => parsePostGISPoint(col.properties.location)),[localCollections]);
+  const stopCoords = useMemo(() => localCollections.map(col => parsePostGISPoint(col.properties.location)), [localCollections]);
   const coordString = useMemo(() => {
     if (stopCoords.length < 2) return null;
     return stopCoords.map(c => `${c[1]},${c[0]}`).join(';');
-  },[stopCoords]);
+  }, [stopCoords]);
 
   useEffect(() => {
     const fetchOptimizedRoute = async () => {
@@ -144,7 +147,8 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
 
     if (isOffline) {
       const queue: OfflineAction[] = JSON.parse(localStorage.getItem('spotlex_offline_queue') || '[]');
-      queue.push({ colId: col.id, clientName: '', address: '', email: '', timestamp: Date.now() }); // Cleaned up queue payload
+      // Enterprise Fix: Push only the ID to local storage. Highly secure and matches our type.
+      queue.push({ colId: col.id, timestamp: Date.now() });
       localStorage.setItem('spotlex_offline_queue', JSON.stringify(queue));
       toast.info("Offline: Action logged to device queue.");
       setActionLoading(null);
@@ -156,11 +160,10 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
       if (error) throw error;
       toast.success("Arrival logged successfully.");
 
-      // Clean, secure API call. No PII sent from browser!
       await fetch('/api/notify-arrival', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collectionId: col.id })
+        body: JSON.stringify({ collectionId: col.id }) // Clean API payload
       });
     } catch (e) {
       toast.error("Network error. Try again.");
@@ -198,7 +201,7 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
       setOutcomeFile(null);
       setOutcomeReason('');
     } catch (err: any) {
-      toast.error("Failed to log outcome.");
+      toast.error(err.message || "Failed to log outcome.");
     } finally {
       setIsSubmittingOutcome(false);
     }

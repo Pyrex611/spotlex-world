@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Save, User, Phone, ShieldCheck, CalendarDays } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, CalendarDays } from 'lucide-react'
 import Link from 'next/link'
 import BrandLogo from '@/components/BrandLogo'
-import { updateClientProfile } from '@/app/admin/actions'
 import ScheduleEditor from '@/components/admin/ScheduleEditor'
+import ClientProfileEditor from '@/components/admin/ClientProfileEditor'
 
 export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -43,44 +43,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
           <h1 className="text-2xl font-black text-slate-900 mb-2">Modify Profile</h1>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">System ID: {client.id.split('-')[0]}</p>
           
-          {/* Using standard form submission for Profile, catching RLS errors via a wrapper action if needed */}
-          <form action={updateClientProfile} className="space-y-8 relative z-10">
-            <input type="hidden" name="id" value={client.id} />
-            
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
-              <div className="relative group">
-                <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
-                <input 
-                  name="full_name"
-                  defaultValue={client.full_name}
-                  required
-                  className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Verified Phone</label>
-              <div className="relative group">
-                <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
-                <input 
-                  name="phone"
-                  defaultValue={client.phone || ''}
-                  className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <button 
-                type="submit"
-                className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-slate-300 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-              >
-                <Save className="w-5 h-5" /> Commit Changes
-              </button>
-            </div>
-          </form>
+          <ClientProfileEditor client={client} />
         </div>
 
         {/* Collection Scheduling Section */}

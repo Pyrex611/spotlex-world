@@ -26,33 +26,36 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // Use a try-catch to prevent UND_ERR_CONNECT_TIMEOUT from crashing the whole app
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
+  const isProtectedRoute = 
+    request.nextUrl.pathname.startsWith('/client') || 
+    request.nextUrl.pathname.startsWith('/driver') || 
+    request.nextUrl.pathname.startsWith('/admin')
+
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    // Attempt to verify the session
+    const { data: { user }, error } = await supabase.auth.getUser()
 
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
-    const isProtectedRoute = 
-      request.nextUrl.pathname.startsWith('/client') || 
-      request.nextUrl.pathname.startsWith('/driver') || 
-      request.nextUrl.pathname.startsWith('/admin')
-
+    // If no user and trying to access a secure area, kick to login
     if (!user && isProtectedRoute) {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }
 
+    // If user is logged in and trying to view the login/register page, send them to their dashboard
     if (user && isAuthRoute) {
       const role = user.user_metadata?.role || 'client'
       return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
     }
+
   } catch (e) {
-    // If Supabase times out, we allow the request to continue rather than hanging.
-    // The individual pages will handle the missing session.
-    console.error('[Proxy] Supabase connection timeout, skipping check.')
+    // ENTERPRISE FIX: If a DNS/Network error (EAI_AGAIN) occurs, log it and FAIL OPEN.
+    // Do not crash the router. The target page will handle the offline state.
+    console.error('[Proxy] Network timeout resolving Supabase. Failsafe activated.', e)
   }
 
   return response
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  matcher:['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }

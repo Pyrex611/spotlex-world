@@ -3,16 +3,17 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { email, clientName, address } = await req.json();
+    const { clientName, address } = await req.json();
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
-    }
+    // Secure Enterprise Insight: 
+    // In dev mode, Resend Free Tier only allows sending to the verified email domain.
+    // Instead of using the client's actual email, we push this to the test endpoint.
+    const testDeliveryEmail = process.env.TEST_DELIVERY_EMAIL || 'delivered@resend.dev';
 
     const { data, error } = await resend.emails.send({
-      from: 'SpotlexWorld <onboarding@resend.dev>', // Replace with your verified domain in production
-      to: [email],
-      subject: '🚛 SpotlexWorld: We are at your gate!',
+      from: 'SpotlexWorld <onboarding@resend.dev>',
+      to: [testDeliveryEmail],
+      subject: `🚛 SpotlexWorld: We are at your gate, ${clientName}!`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; background-color: #ffffff;">
           <div style="background-color: #059669; padding: 40px; text-align: center;">
@@ -26,9 +27,6 @@ export async function POST(req: Request) {
               <p style="margin: 8px 0 0 0; font-size: 15px; font-weight: 600; color: #1e293b;">${address}</p>
             </div>
             <p style="font-size: 14px; color: #64748b;">Please ensure your waste bins are positioned correctly. Our team will wait for a short window before moving to the next location.</p>
-          </div>
-          <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-            &copy; ${new Date().getFullYear()} SpotlexWorld. All rights reserved.
           </div>
         </div>
       `

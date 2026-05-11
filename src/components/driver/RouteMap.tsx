@@ -22,7 +22,7 @@ const DriverLiveIcon = L.divIcon({
 })
 
 function parsePostGISPoint(locationStr: string | null): [number, number] {
-  if (!locationStr || !locationStr.startsWith('POINT(')) return [6.5244, 3.3792];
+  if (!locationStr || !locationStr.startsWith('POINT(')) return[6.5244, 3.3792];
   const cleanStr = locationStr.slice(6, -1);
   const parts = cleanStr.split(' ');
   if (parts.length !== 2) return[6.5244, 3.3792];
@@ -34,7 +34,7 @@ function MapController({ coords, isFullscreen }: { coords: [number, number][], i
   useEffect(() => {
     const timer = setTimeout(() => { map.invalidateSize() }, 250);
     if (coords.length > 0) {
-      map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] })
+      map.fitBounds(L.latLngBounds(coords), { padding:[50, 50] })
     }
     return () => clearTimeout(timer);
   },[coords, map, isFullscreen])
@@ -42,22 +42,22 @@ function MapController({ coords, isFullscreen }: { coords: [number, number][], i
 }
 
 interface OfflineAction {
-  colId: string; email: string; clientName: string; address: string; timestamp: number;
+  colId: string; clientName: string; address: string; timestamp: number;
 }
 
 export default function RouteMap({ collections, driverId, driverName }: { collections: any[], driverId: string, driverName: string }) {
-  const [localCollections, setLocalCollections] = useState(collections)
-  const[routeData, setRouteData] = useState<[number, number][]>([])
+  const[localCollections, setLocalCollections] = useState(collections)
+  const [routeData, setRouteData] = useState<[number, number][]>([])
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const[driverLocation, setDriverLocation] = useState<[number, number] | null>(null)
-  const [isOffline, setIsOffline] = useState(false)
+  const[isOffline, setIsOffline] = useState(false)
   
   const [outcomeModal, setOutcomeModal] = useState<any | null>(null)
   const [outcomeType, setOutcomeType] = useState<'collected' | 'no_answer' | 'other'>('collected')
   const [outcomeFile, setOutcomeFile] = useState<File | null>(null)
   const [outcomeReason, setOutcomeReason] = useState('')
-  const[isSubmittingOutcome, setIsSubmittingOutcome] = useState(false)
+  const [isSubmittingOutcome, setIsSubmittingOutcome] = useState(false)
 
   const supabase = createClient()
 
@@ -97,7 +97,11 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
     for (const action of queue) {
       try {
         await supabase.from('collections').update({ status: 'arrived' }).eq('id', action.colId);
-        await fetch('/api/notify-arrival', { method: 'POST', body: JSON.stringify({ email: action.email, clientName: action.clientName, address: action.address }) });
+        await fetch('/api/notify-arrival', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientName: action.clientName, address: action.address }) 
+        });
       } catch (e) { console.error("Sync failed", e); }
     }
     localStorage.removeItem('spotlex_offline_queue');
@@ -140,7 +144,7 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
 
     if (isOffline) {
       const queue: OfflineAction[] = JSON.parse(localStorage.getItem('spotlex_offline_queue') || '[]');
-      queue.push({ colId: col.id, email: col.properties.profiles.email, clientName: col.properties.profiles.full_name, address: col.properties.address_text, timestamp: Date.now() });
+      queue.push({ colId: col.id, clientName: col.properties.profiles.full_name, address: col.properties.address_text, timestamp: Date.now() });
       localStorage.setItem('spotlex_offline_queue', JSON.stringify(queue));
       toast.info("Offline: Action logged to device queue.");
       setActionLoading(null);
@@ -151,10 +155,14 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
       const { error } = await supabase.from('collections').update({ status: 'arrived' }).eq('id', col.id);
       if (error) throw error;
       toast.success("Arrival logged successfully.");
+
       await fetch('/api/notify-arrival', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: col.properties.profiles.email, clientName: col.properties.profiles.full_name, address: col.properties.address_text })
+        body: JSON.stringify({ 
+          clientName: col.properties.profiles.full_name, 
+          address: col.properties.address_text 
+        })
       });
     } catch (e) {
       toast.error("Network error. Try again.");
@@ -192,7 +200,7 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
       setOutcomeFile(null);
       setOutcomeReason('');
     } catch (err: any) {
-      toast.error(err.message || "Failed to log outcome.");
+      toast.error("Failed to log outcome.");
     } finally {
       setIsSubmittingOutcome(false);
     }

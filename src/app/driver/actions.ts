@@ -3,16 +3,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-/**
- * Initializes a driver's shift by assigning the selected assistants to today's collections.
- * Renamed to bust the Turbopack cache.
- */
 export async function initializeDriverShift(collectionIds: string[], assistantIds: string[]) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
+  if (!user) return { error: 'Unauthorized.' }
+
+  // Assign the selected assistants AND the current driver to today's collections
   const { error } = await supabase
     .from('collections')
-    .update({ assistant_ids: assistantIds })
+    .update({ 
+      assistant_ids: assistantIds,
+      driver_id: user.id 
+    })
     .in('id', collectionIds)
 
   if (error) {
@@ -24,10 +27,6 @@ export async function initializeDriverShift(collectionIds: string[], assistantId
   return { success: true }
 }
 
-/**
- * Logs the final outcome (Collected, No Answer, etc.) and attaches photo proof.
- * Renamed to bust the Turbopack cache.
- */
 export async function submitCollectionOutcome(
   collectionId: string, 
   status: 'collected' | 'no_answer' | 'other', 

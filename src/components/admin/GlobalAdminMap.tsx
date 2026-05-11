@@ -19,7 +19,7 @@ const DefaultIcon = L.icon({
   iconUrl, 
   shadowUrl, 
   iconSize: [25, 41], 
-  iconAnchor: [12, 41] 
+  iconAnchor:[12, 41] 
 })
 
 const EditIcon = L.icon({ 
@@ -30,7 +30,6 @@ const EditIcon = L.icon({
   className: 'hue-rotate-[140deg] saturate-200 brightness-110' 
 })
 
-// Custom animated icon for live trucks on the Admin map
 const LiveTruckIcon = L.divIcon({
   html: `<div style="background-color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; width: 32px; height: 32px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11h12Z"/><path d="M14 8h4.38a2 2 0 0 1 1.6.82l2.3 3.44A2 2 0 0 1 22.5 13.5V17h-2.5"/><path d="M8 17.5A2.5 2.5 0 1 1 5.5 15 2.5 2.5 0 0 1 8 17.5Z"/><path d="M21 17.5A2.5 2.5 0 1 1 18.5 15 2.5 2.5 0 0 1 21 17.5Z"/></svg></div>`,
   className: 'live-truck-marker animate-bounce',
@@ -38,12 +37,11 @@ const LiveTruckIcon = L.divIcon({
   iconAnchor:[16, 16]
 });
 
-// Robust PostGIS Parser
 function parsePostGISPoint(locationStr: string | null): [number, number] {
   if (!locationStr || !locationStr.startsWith('POINT(')) return[6.5244, 3.3792];
   const cleanStr = locationStr.slice(6, -1);
   const parts = cleanStr.split(' ');
-  if (parts.length !== 2) return [6.5244, 3.3792];
+  if (parts.length !== 2) return[6.5244, 3.3792];
   return[parseFloat(parts[1]), parseFloat(parts[0])];
 }
 
@@ -52,11 +50,11 @@ function MapController({ targetBounds, targetPos, isFullscreen }: { targetBounds
   useEffect(() => {
     setTimeout(() => { map.invalidateSize() }, 100);
     if (targetBounds) {
-      map.flyToBounds(targetBounds, { padding: [50, 50], duration: 1.5 });
+      map.flyToBounds(targetBounds, { padding:[50, 50], duration: 1.5 });
     } else if (targetPos) {
       map.flyTo(targetPos, 18, { duration: 1.5 });
     }
-  }, [targetBounds, targetPos, isFullscreen, map]);
+  },[targetBounds, targetPos, isFullscreen, map]);
   return null;
 }
 
@@ -70,20 +68,18 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
   const editId = searchParams.get('editId');
   const supabase = createClient();
 
-  const [viewMode, setViewMode] = useState<'today' | 'all'>('today');
+  const[viewMode, setViewMode] = useState<'today' | 'all'>('today');
   const[editingItem, setEditingItem] = useState<any | null>(null);
   const [editAddress, setEditAddress] = useState('');
-  const [tempPos, setTempPos] = useState<[number, number] | null>(null);
+  const[tempPos, setTempPos] = useState<[number, number] | null>(null);
   const [mapTarget, setMapTarget] = useState<{bounds?: L.LatLngBounds, pos?: [number, number]}>({});
-  const [loading, setLoading] = useState(false);
+  const[loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // State for live moving trucks
-  const [activeTrucks, setActiveTrucks] = useState<Record<string, { lat: number, lng: number, name: string }>>({});
+  const[activeTrucks, setActiveTrucks] = useState<Record<string, { lat: number, lng: number, name: string }>>({});
 
   useEffect(() => {
-    // Listen to Truck Broadcasts
     const channel = supabase.channel('truck-tracking')
       .on('broadcast', { event: 'location_update' }, (payload) => {
         const { driverId, driverName, lat, lng } = payload.payload;
@@ -95,7 +91,7 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [supabase]);
+  },[supabase]);
 
   useEffect(() => {
     if (editId) {
@@ -167,13 +163,17 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
         <div className="bg-white/90 backdrop-blur-xl border border-slate-200 p-1.5 rounded-2xl shadow-2xl flex items-center gap-1">
           <button 
             onClick={() => setViewMode('today')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${viewMode === 'today' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              viewMode === 'today' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'
+            }`}
           >
-            <Filter className="w-3.5 h-3.5" /> TODAY'S ROUTE
+            <Filter className="w-3.5 h-3.5" /> TODAY&apos;S ROUTE
           </button>
           <button 
             onClick={() => setViewMode('all')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${viewMode === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              viewMode === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'
+            }`}
           >
             <Layers className="w-3.5 h-3.5" /> ALL ASSETS
           </button>
@@ -223,11 +223,10 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
       <MapContainer center={[9.0820, 8.6753]} zoom={6} zoomControl={false} style={{ height: '100%', width: '100%', background: '#f8fafc' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         
-        {/* Render Live Vehicles */}
         {Object.values(activeTrucks).map((truck, idx) => (
           <Marker key={`truck-${idx}`} position={[truck.lat, truck.lng]} icon={LiveTruckIcon} zIndexOffset={1000}>
             <Tooltip direction="top" offset={[0, -20]} className="premium-tooltip-admin" permanent>
-               <span className="font-bold flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div> {truck.name}'s Truck</span>
+               <span className="font-bold flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div> {truck.name}&apos;s Truck</span>
             </Tooltip>
           </Marker>
         ))}

@@ -1,0 +1,3282 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+eslint.config.mjs
+next.config.ts
+package.json
+postcss.config.mjs
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+README.md
+src/app/admin/actions.ts
+src/app/admin/clients/[id]/page.tsx
+src/app/admin/clients/page.tsx
+src/app/admin/dashboard/page.tsx
+src/app/admin/layout.tsx
+src/app/api/notify-arrival/route.ts
+src/app/auth/login/page.tsx
+src/app/auth/register/page.tsx
+src/app/auth/team-invite/page.tsx
+src/app/client/actions.ts
+src/app/client/dashboard/page.tsx
+src/app/client/layout.tsx
+src/app/dashboard/page.tsx
+src/app/driver/actions.ts
+src/app/driver/dashboard/page.tsx
+src/app/driver/layout.tsx
+src/app/favicon.ico
+src/app/globals.css
+src/app/layout.tsx
+src/app/page.tsx
+src/components/AddressGeocoder.tsx
+src/components/admin/AdminMapWrapper.tsx
+src/components/admin/GlobalAdminMap.tsx
+src/components/admin/ScheduleEditor.tsx
+src/components/BrandLogo.tsx
+src/components/client/ClientDashboardView.tsx
+src/components/driver/DriverMapWrapper.tsx
+src/components/driver/RouteMap.tsx
+src/components/InteractiveMap.tsx
+src/components/LogoutButton.tsx
+src/lib/resend.ts
+src/lib/supabase/client.ts
+src/lib/supabase/server.ts
+src/proxy.ts
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="src/app/admin/clients/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { MapPin, ChevronRight, ArrowLeft, Phone, Edit3 } from 'lucide-react'
+import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
+
+export default async function AdminClientsPage() {
+  const supabase = await createClient()
+
+  const { data: clients } = await supabase
+    .from('profiles')
+    .select(`
+      id,
+      full_name,
+      phone,
+      properties (
+        id,
+        address_text
+      )
+    `)
+    .eq('role', 'client')
+    .order('full_name', { ascending: true })
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/20">
+        <div className="flex items-center gap-6">
+          <Link href="/admin/dashboard" className="bg-slate-50 p-3 rounded-2xl border border-slate-100 hover:bg-slate-900 hover:text-white transition-all text-slate-600">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <BrandLogo textSize="text-2xl" />
+        </div>
+        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-xl border border-green-100">
+           <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+           <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">{clients?.length || 0} Registered Clients</span>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone & Contact</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Deployment Address</th>
+                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Registry Tools</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {clients?.map((client) => {
+                const primaryProperty = (client.properties as any[])?.[0];
+                return (
+                  <tr key={client.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center font-bold text-sm">
+                          {client.full_name?.charAt(0)}
+                        </div>
+                        <span className="font-bold text-slate-900">{client.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-sm font-bold text-slate-600">
+                       <div className="flex items-center gap-2">
+                          <Phone className="w-3.5 h-3.5 text-green-600" />
+                          {client.phone || 'N/A'}
+                       </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      {primaryProperty ? (
+                        <div className="flex items-start gap-2 max-w-sm">
+                          <MapPin className="w-4 h-4 text-slate-300 mt-0.5" />
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed italic line-clamp-2">
+                            {primaryProperty.address_text}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">No Property Assigned</span>
+                      )}
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        {primaryProperty && (
+                          <Link 
+                            href={`/admin/dashboard?editId=${primaryProperty.id}`}
+                            className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                            title="Map View"
+                          >
+                            <MapPin className="w-4 h-4" />
+                          </Link>
+                        )}
+                        <Link 
+                          href={`/admin/clients/${client.id}`}
+                          className="p-3 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                          title="Edit Profile"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/admin/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight } from 'lucide-react'
+import AdminMapWrapper from '@/components/admin/AdminMapWrapper'
+import Link from 'next/link'
+import 'leaflet/dist/leaflet.css'
+
+export default async function AdminDashboardPage() {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
+  const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
+  
+  const { data: activeCollections } = await supabase
+    .from('collections')
+    .select(`
+      id, 
+      status, 
+      property_id,
+      driver:profiles!collections_driver_id_fkey(full_name),
+      assistant:profiles!collections_assistant_id_fkey(full_name)
+    `)
+    .eq('scheduled_date', today)
+
+  const todayPropertyIds = activeCollections?.map(col => col.property_id) || []
+
+  const { data: properties } = await supabase
+    .from('properties')
+    .select('id, address_text, location, client_id, profiles(full_name)')
+    .not('location', 'is', null)
+
+  return (
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
+          <p className="text-slate-500 font-medium mt-1">Operational command and logistics for SpotlexWorld.</p>
+        </div>
+        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200">
+          {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* FIXED: Outer Link with inner content */}
+        <Link href="/admin/clients">
+          <div className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center gap-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-green-200 cursor-pointer group">
+            <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-lg transition-colors group-hover:bg-green-600">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">
+                Residents <ArrowUpRight className="w-3.5 h-3.5 text-green-600 opacity-0 group-hover:opacity-100 transition-all" />
+              </p>
+              <p className="text-3xl font-black text-slate-900 tracking-tight">{totalClients || 0}</p>
+            </div>
+          </div>
+        </Link>
+
+        <StatCard title="Today's Target" value={stats?.total_scheduled || 0} icon={<ClipboardList className="w-6 h-6" />} color="bg-slate-100 text-slate-900" />
+        <StatCard title="Completed" value={stats?.total_fulfilled || 0} icon={<CheckCircle2 className="w-6 h-6" />} color="bg-green-100 text-green-700" />
+        <StatCard title="Active Shifts" value={stats?.active_drivers || 0} icon={<Truck className="w-6 h-6" />} color="bg-orange-100 text-orange-700" />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        <div className="xl:col-span-2 bg-white p-2 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 overflow-hidden relative group">
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest">Global Asset Map</h2>
+            </div>
+          </div>
+          <div className="h-[500px] md:h-[650px] w-full rounded-[2.5rem] overflow-hidden border border-slate-50">
+             <AdminMapWrapper 
+                properties={properties || []} 
+                todayPropertyIds={todayPropertyIds} 
+              />
+          </div>
+        </div>
+
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
+          <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-10 flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-600 rounded-full"></div> Collection Monitor
+          </h2>
+          <div className="space-y-8 overflow-y-auto max-h-[550px] pr-4 custom-scrollbar">
+            {activeCollections?.map((col) => (
+              <div key={col.id} className="relative pl-6 border-l-2 border-slate-100 hover:border-green-500 transition-colors py-1">
+                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${col.status === 'collected' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
+                <div className="flex justify-between items-center mb-1">
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SHIFT-LOG</p>
+                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
+                     col.status === 'collected' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-500'
+                   }`}>{col.status}</span>
+                </div>
+                <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
+                <p className="text-[10px] font-medium text-slate-400">Helper: {(col.assistant as any)?.full_name || 'None Assigned'}</p>
+              </div>
+            ))}
+            {activeCollections?.length === 0 && (
+              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Active Logs</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ title, value, icon, color }: any) {
+  return (
+    <div className="bg-white p-7 rounded-[2.5rem] border border-slate-50 shadow-xl shadow-slate-200/10 flex items-center gap-6">
+      <div className={`${color} p-4 rounded-2xl shadow-sm`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
+        <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/admin/layout.tsx">
+import LogoutButton from '@/components/LogoutButton'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          <nav className="flex items-center gap-6">
+            <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
+            <LogoutButton />
+          </nav>
+        </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto px-4 md:px-8 py-10 w-full animate-in fade-in duration-500">
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/api/notify-arrival/route.ts">
+import { resend } from '@/lib/resend';
+import { NextResponse } from 'next/server';
+
+export async function POST(req: Request) {
+  try {
+    const { email, clientName, address } = await req.json();
+
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: 'SpotlexWorld <onboarding@resend.dev>', // Replace with your verified domain in production
+      to: [email],
+      subject: '🚛 SpotlexWorld: We are at your gate!',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; background-color: #ffffff;">
+          <div style="background-color: #059669; padding: 40px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">SpotlexWorld</h1>
+          </div>
+          <div style="padding: 40px; color: #0f172a;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-top: 0;">Hello ${clientName},</h2>
+            <p style="font-size: 16px; line-height: 1.6; color: #475569;">Our collection vehicle has arrived at your residence for the scheduled waste pickup.</p>
+            <div style="background-color: #f8fafc; padding: 24px; border-radius: 16px; border-left: 4px solid #059669; margin: 32px 0;">
+              <p style="margin: 0; font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em;">Collection Address</p>
+              <p style="margin: 8px 0 0 0; font-size: 15px; font-weight: 600; color: #1e293b;">${address}</p>
+            </div>
+            <p style="font-size: 14px; color: #64748b;">Please ensure your waste bins are positioned correctly. Our team will wait for a short window before moving to the next location.</p>
+          </div>
+          <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+            &copy; ${new Date().getFullYear()} SpotlexWorld. All rights reserved.
+          </div>
+        </div>
+      `
+    });
+
+    if (error) {
+      return NextResponse.json({ error }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="src/app/auth/login/page.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) {
+        setError(`Login failed: ${authError.message}`)
+        setLoading(false)
+        return
+      }
+
+      if (data.user) {
+        // Direct Client-Side Routing based on JWT Metadata
+        const role = data.user.user_metadata?.role || 'client'
+        console.log('[Auth] Login successful, routing to:', role)
+        
+        // We use window.location here instead of router.push to force 
+        // a clean state refresh and ensure cookies are picked up
+        window.location.href = `/${role}/dashboard`
+      }
+
+    } catch (err: any) {
+      setError('An unexpected error occurred.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-green-700">Spotless World</h1>
+          <p className="text-gray-500 mt-2">Sign in to your account</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Don't have an account?{' '}
+          <Link href="/auth/register" className="text-green-600 hover:underline font-medium">
+            Register here
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/auth/register/page.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, User, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const[success, setSuccess] = useState(false)
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      console.log('[Auth] Attempting client registration for:', formData.email)
+      
+      // 1. Create the Auth User
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: 'client'
+          }
+        }
+      })
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        console.log('[Auth] Auth account created. Creating public profile...')
+        
+        // 2. Explicitly create the Public Profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            full_name: formData.fullName,
+            role: 'client'
+          })
+
+        if (profileError) {
+          console.error('[DB Insert Error]', profileError)
+          throw new Error(`Profile creation failed: ${profileError.message}`)
+        }
+      }
+
+      console.log('[Auth] Complete registration successful!')
+      setSuccess(true)
+      setLoading(false)
+      setTimeout(() => router.push('/dashboard'), 2000)
+
+    } catch (err: any) {
+      console.error('[Registration Error]', err)
+      setError(err.message || 'An unexpected internal error occurred.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-green-700">Join Spotless World</h1>
+          <p className="text-gray-500 mt-2">Create your resident account</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm mb-6 text-center border border-green-200">
+            Registration successful! Redirecting to dashboard...
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                placeholder="John Doe"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || success}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Already have an account?{' '}
+          <Link href="/auth/login" className="text-green-600 hover:underline font-medium">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/auth/team-invite/page.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, User, KeyRound, Loader2, ShieldCheck } from 'lucide-react'
+
+const TEAM_ACCESS_CODE = 'SPOTLEX2026'
+
+export default function TeamRegisterPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    accessCode: ''
+  })
+  const [error, setError] = useState<string | null>(null)
+  const[loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+
+    if (formData.accessCode !== TEAM_ACCESS_CODE) {
+      setError("Invalid Team Access Code.")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      console.log('[Auth] Attempting driver registration for:', formData.email)
+      
+      // 1. Create the Auth User
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: 'driver'
+          }
+        }
+      })
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        console.log('[Auth] Auth account created. Creating driver profile...')
+        
+        // 2. Explicitly create the Public Profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            full_name: formData.fullName,
+            role: 'driver'
+          })
+
+        if (profileError) {
+          console.error('[DB Insert Error]', profileError)
+          throw new Error(`Profile creation failed: ${profileError.message}`)
+        }
+      }
+
+      console.log('[Auth] Complete driver registration successful!')
+      setSuccess(true)
+      setLoading(false)
+      setTimeout(() => router.push('/dashboard'), 2000)
+
+    } catch (err: any) {
+      console.error('[Registration Error]', err)
+      setError(err.message || 'An unexpected internal error occurred.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-2xl p-8 border-t-4 border-blue-600">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="bg-blue-100 p-3 rounded-full mb-3">
+            <ShieldCheck className="w-8 h-8 text-blue-700" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">Driver Portal Setup</h1>
+          <p className="text-slate-500 mt-1 text-sm">Authorized personnel only</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm mb-6 text-center border border-blue-200">
+            Account created! Redirecting to dashboard...
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Access Code</label>
+            <div className="relative">
+              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                required
+                value={formData.accessCode}
+                onChange={(e) => setFormData({...formData, accessCode: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase"
+                placeholder="Enter Authorization Code"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || success}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50 mt-4"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Register as Driver'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/client/layout.tsx">
+import LogoutButton from '@/components/LogoutButton'
+import { Leaf } from 'lucide-react'
+import { ReactNode } from 'react'
+
+export default function ClientLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2 text-green-800">
+            <Leaf className="w-5 h-5 fill-green-600" />
+            <h1 className="text-lg font-bold tracking-tight">SpotlexWorld</h1>
+          </div>
+          <LogoutButton />
+        </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full">
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+
+export default async function DashboardRouter() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/auth/login')
+  }
+
+  const role = user.user_metadata?.role || 'client'
+  
+  // Instantly redirect to the correct dashboard based on role
+  redirect(`/${role}/dashboard`)
+}
+</file>
+
+<file path="src/app/driver/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import DriverMapWrapper from '@/components/driver/DriverMapWrapper'
+import BrandLogo from '@/components/BrandLogo'
+import { Target, CheckCircle2, Clock } from 'lucide-react'
+
+export default async function DriverDashboardPage() {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user?.id)
+    .single()
+
+  const { data: collections } = await supabase
+    .from('collections')
+    .select(`
+      id,
+      status,
+      properties (
+        id,
+        address_text,
+        location,
+        profiles ( full_name, email, phone )
+      )
+    `)
+    .eq('scheduled_date', today)
+    .eq('driver_id', user?.id)
+
+  const { data: assistants } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .eq('role', 'assistant')
+
+  const total = collections?.length || 0;
+  const collected = collections?.filter(c => c.status === 'collected').length || 0;
+  const pending = total - collected;
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto p-4 md:p-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Driver Terminal</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Shift Active: SpotlexWorld Operations</p>
+          </div>
+        </div>
+        <BrandLogo showText={false} iconSize={24} />
+      </header>
+
+      {/* Driver Log Stats */}
+      <div className="grid grid-cols-3 gap-4 md:gap-6">
+        <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+          <div className="bg-slate-900 p-3 rounded-xl text-white"><Target size={20} /></div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Scheduled</p>
+            <p className="text-2xl font-black text-slate-900">{total}</p>
+          </div>
+        </div>
+        <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+          <div className="bg-green-100 p-3 rounded-xl text-green-700"><CheckCircle2 size={20} /></div>
+          <div>
+            <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Collected</p>
+            <p className="text-2xl font-black text-slate-900">{collected}</p>
+          </div>
+        </div>
+        <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+          <div className="bg-orange-100 p-3 rounded-xl text-orange-700"><Clock size={20} /></div>
+          <div>
+            <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Pending</p>
+            <p className="text-2xl font-black text-slate-900">{pending}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-2 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 relative">
+         <DriverMapWrapper 
+            collections={collections || []} 
+            assistants={assistants ||[]}
+            driverId={user?.id || ''}
+            driverName={profile?.full_name || 'Spotlex Driver'}
+         />
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/driver/layout.tsx">
+import LogoutButton from '@/components/LogoutButton'
+import { Truck } from 'lucide-react'
+import { ReactNode } from 'react'
+
+export default function DriverLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-green-700">
+            <Truck className="w-6 h-6" />
+            <h1 className="text-xl font-bold">Driver Terminal</h1>
+          </div>
+          <nav>
+            <LogoutButton />
+          </nav>
+        </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/globals.css">
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="src/components/AddressGeocoder.tsx">
+'use client'
+
+import { useState, useEffect, useMemo } from 'react'
+import { Search, Loader2, CheckCircle2, Navigation, LocateFixed } from 'lucide-react'
+import { savePropertyLocation } from '@/app/client/actions'
+import dynamic from 'next/dynamic'
+import type { LatLngExpression } from 'leaflet'
+import { toast } from 'sonner'
+
+interface NominatimResult {
+  place_id: number; display_name: string; lat: string; lon: string;
+}
+
+const DEFAULT_CENTER: LatLngExpression =[6.5244, 3.3792]
+
+export default function AddressGeocoder() {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<NominatimResult[]>([])
+  const[loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [mapCenter, setMapCenter] = useState<LatLngExpression>(DEFAULT_CENTER)
+  const[markerPosition, setMarkerPosition] = useState<LatLngExpression>(DEFAULT_CENTER)
+  const[selectedAddress, setSelectedAddress] = useState('')
+
+  const Map = useMemo(() => dynamic(() => import('./InteractiveMap'), {
+    loading: () => <div className="h-full w-full bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 font-medium">Initializing Map...</div>,
+    ssr: false
+  }),[])
+
+  useEffect(() => {
+    if (!query || selectedAddress === query) {
+      setResults([]); return;
+    }
+    const delayDebounceFn = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=ng`, { headers: { 'User-Agent': 'SpotlexWorld/1.0' } })
+        const data = await res.json()
+        setResults(data)
+      } catch (err) {
+        toast.error('Search failed to connect to satellite.');
+      } finally { setLoading(false) }
+    }, 800)
+    return () => clearTimeout(delayDebounceFn)
+  }, [query, selectedAddress])
+
+  const handleSelectAddress = (item: NominatimResult) => {
+    const position: LatLngExpression = [parseFloat(item.lat), parseFloat(item.lon)]
+    setQuery(item.display_name)
+    setSelectedAddress(item.display_name)
+    setMapCenter(position)
+    setMarkerPosition(position)
+    setResults([])
+    toast.info("Location pinned. You can drag the pin for precision.");
+  }
+
+  const handleMarkerDrag = (newPosition: LatLngExpression, newAddress: string) => {
+    setMarkerPosition(newPosition)
+    setQuery(newAddress)
+    setSelectedAddress(newAddress)
+  }
+
+  const handleUseCurrentLocation = () => {
+    setLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newPos: LatLngExpression = [latitude, longitude];
+        setMapCenter(newPos)
+        setMarkerPosition(newPos)
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, { headers: { 'User-Agent': 'SpotlexWorld/1.0' }})
+        .then(res => res.json()).then(data => {
+          const addr = data.display_name || 'Current Location';
+          setQuery(addr); setSelectedAddress(addr);
+          toast.success("GPS Location acquired.");
+        });
+        setLoading(false)
+      },
+      () => {
+        toast.error("GPS access denied. Please search manually.");
+        setLoading(false)
+      }
+    );
+  }
+  
+  const handleSave = async () => {
+    if (!selectedAddress) { toast.error("Please confirm an address first."); return; }
+    setSaving(true)
+    try {
+      const posArray = Array.isArray(markerPosition) ? markerPosition : [markerPosition.lat, markerPosition.lng];
+      await savePropertyLocation(selectedAddress, posArray[0].toString(), posArray[1].toString())
+      toast.success("Location securely saved.");
+    } catch (err: any) {
+      toast.error(err.message || 'Saving failed.');
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden max-w-5xl w-full">
+      <div className="p-8 border-b border-slate-50">
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Location Setup</h2>
+        <p className="text-slate-500 text-sm mt-1">Pinpoint your residence for automated collection scheduling.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3">
+        <div className="lg:col-span-2 p-8 space-y-6 border-r border-slate-50">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search your street address..."
+              className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-xl text-slate-900 font-medium focus:ring-2 focus:ring-green-600 transition-all outline-none"
+            />
+            {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 animate-spin" />}
+            
+            {results.length > 0 && (
+              <ul className="absolute left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 overflow-hidden">
+                {results.map((item) => (
+                  <li key={item.place_id} onClick={() => handleSelectAddress(item)} className="px-5 py-4 hover:bg-slate-50 cursor-pointer flex items-start gap-3 border-b border-slate-50">
+                    <Navigation className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                    <span className="text-sm text-slate-600 font-medium">{item.display_name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="h-[400px] rounded-2xl overflow-hidden border border-slate-100">
+            <Map center={mapCenter} markerPosition={markerPosition} onMarkerDrag={handleMarkerDrag} />
+          </div>
+          <button onClick={handleUseCurrentLocation} className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition">
+            <LocateFixed className="w-4 h-4" /> Use Device GPS
+          </button>
+        </div>
+
+        <div className="bg-slate-50/50 p-8 flex flex-col justify-between">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Current Selection</label>
+              <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <p className="text-sm text-slate-700 font-semibold leading-relaxed">{selectedAddress || "No location selected"}</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Precision Coordinates</label>
+              <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm font-mono text-[11px] text-slate-500">
+                {Array.isArray(markerPosition) ? `${markerPosition[0].toFixed(6)}, ${markerPosition[1].toFixed(6)}` : `${markerPosition.lat.toFixed(6)}, ${markerPosition.lng.toFixed(6)}`}
+              </div>
+            </div>
+          </div>
+
+          <button onClick={handleSave} disabled={!selectedAddress || saving} className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-20 shadow-xl">
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 className="w-5 h-5" /> Confirm Address</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/components/admin/AdminMapWrapper.tsx">
+'use client'
+
+import dynamic from 'next/dynamic'
+import { useMemo } from 'react'
+
+interface AdminMapWrapperProps {
+  properties: any[]
+  todayPropertyIds: string[]
+}
+
+export default function AdminMapWrapper({ properties, todayPropertyIds }: AdminMapWrapperProps) {
+  const GlobalAdminMap = useMemo(() => dynamic(
+    () => import('./GlobalAdminMap'),
+    { 
+      ssr: false,
+      loading: () => (
+        <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center animate-pulse">
+           <div className="w-12 h-12 border-4 border-slate-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
+           <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Waking Up Satellite Maps...</p>
+        </div>
+      )
+    }
+  ), [])
+
+  return <GlobalAdminMap properties={properties} todayPropertyIds={todayPropertyIds} />
+}
+</file>
+
+<file path="src/components/admin/ScheduleEditor.tsx">
+'use client'
+
+import { useState, useTransition } from 'react'
+import { updatePropertySchedule } from '@/app/admin/actions'
+import { Save, Loader2, MapPin } from 'lucide-react'
+import { toast } from 'sonner'
+
+const DAYS =['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+interface ScheduleEditorProps {
+  property: any;
+  clientId: string;
+}
+
+export default function ScheduleEditor({ property, clientId }: ScheduleEditorProps) {
+  const [isPending, startTransition] = useTransition()
+  const[day, setDay] = useState<string>(property.collection_day_of_week?.toString() ?? '')
+
+  const handleSave = () => {
+    if (day === '') {
+      toast.error("Please select a day of the week.")
+      return
+    }
+
+    startTransition(async () => {
+      const response = await updatePropertySchedule(property.id, clientId, parseInt(day))
+      if (response.error) {
+        toast.error(response.error)
+      } else {
+        toast.success("Schedule successfully assigned.")
+      }
+    })
+  }
+
+  return (
+    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 relative group transition-colors hover:border-green-200">
+      <div className="flex items-start gap-3 mb-6">
+         <MapPin className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+         <p className="text-sm font-bold text-slate-700 leading-relaxed pr-8">
+           {property.address_text}
+         </p>
+      </div>
+
+      <div className="space-y-3">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assigned Collection Day</label>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <select 
+            value={day}
+            onChange={(e) => setDay(e.target.value)}
+            disabled={isPending}
+            className="w-full sm:flex-1 p-4 rounded-xl border-none bg-white shadow-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-green-600 appearance-none disabled:opacity-50"
+          >
+            <option value="" disabled>Select Day...</option>
+            {DAYS.map((d, idx) => (
+              <option key={idx} value={idx}>{d}</option>
+            ))}
+          </select>
+          
+          <button 
+            onClick={handleSave}
+            disabled={isPending || day === ''}
+            className="w-full sm:w-auto bg-green-600 text-white p-4 rounded-xl shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:active:scale-100 active:scale-95"
+            title="Save Schedule"
+          >
+            {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={20} />}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/components/BrandLogo.tsx">
+'use client'
+
+import { Leaf } from 'lucide-react'
+
+interface LogoProps {
+  className?: string
+  iconSize?: number
+  showText?: boolean
+  textSize?: string
+  dark?: boolean
+}
+
+export default function BrandLogo({ 
+  className = "", 
+  iconSize = 20, 
+  showText = true,
+  textSize = "text-xl",
+  dark = false 
+}: LogoProps) {
+  return (
+    <div className={`flex items-center gap-2.5 transition-opacity hover:opacity-90 ${className}`}>
+      <div className="relative flex items-center justify-center">
+        {/* The Base Logo Shape */}
+        <div className="bg-green-600 p-1.5 rounded-lg shadow-lg shadow-green-900/20">
+          <Leaf 
+            size={iconSize} 
+            className="text-white fill-white/20" 
+            strokeWidth={2.5}
+          />
+        </div>
+        {/* Aesthetic Dot for Premium Look */}
+        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-slate-900 rounded-full border-2 border-white"></div>
+      </div>
+      
+      {showText && (
+        <span className={`font-black tracking-tight ${textSize} ${dark ? 'text-white' : 'text-slate-900'}`}>
+          Spotlex<span className="text-green-600 font-extrabold">World</span>
+        </span>
+      )}
+    </div>
+  )
+}
+</file>
+
+<file path="src/components/client/ClientDashboardView.tsx">
+'use client'
+
+import { useEffect, useState, useTransition } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import BrandLogo from '@/components/BrandLogo'
+import { Calendar, MapPin, Truck, Star, Image as ImageIcon, MessageSquare, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { submitClientFeedback } from '@/app/client/actions'
+
+function StarRating({ value, onChange, disabled }: { value: number, onChange?: (val: number) => void, disabled?: boolean }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange && onChange(star)}
+          className={`focus:outline-none ${disabled ? 'cursor-default' : 'hover:scale-110 transition-transform'}`}
+        >
+          <Star className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export default function ClientDashboardView({ property, history }: { property: any, history: any[] }) {
+  const supabase = createClient()
+  const [arrivalNotification, setArrivalNotification] = useState<string | null>(null)
+  
+  const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null)
+  const [rating, setRating] = useState(0)
+  const[remark, setRemark] = useState('')
+  
+  // React standard for handling asynchronous server actions smoothly
+  const[isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (!property?.id) return;
+
+    const channel = supabase
+      .channel('collection-updates')
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'collections', 
+        filter: `property_id=eq.${property.id}` 
+      },
+      (payload) => {
+        if (payload.new.status === 'arrived') {
+          setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
+          toast.success("🚛 Truck Arrived!", { 
+            description: "Our team is at your gate.", 
+            duration: 15000 
+          });
+          setTimeout(() => setArrivalNotification(null), 20000)
+        }
+        if (payload.new.status === 'collected') {
+          toast.success("✅ Waste Collected!", { 
+            description: "Thank you for using SpotlexWorld." 
+          });
+          setTimeout(() => window.location.reload(), 2000);
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [property?.id, supabase])
+
+  const handleFeedbackSubmit = (colId: string) => {
+    if (rating === 0) { 
+      toast.error("Please select a star rating."); 
+      return; 
+    }
+
+    startTransition(async () => {
+      const response = await submitClientFeedback(colId, rating, remark);
+      
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Feedback submitted. Thank you!");
+        setActiveFeedbackId(null);
+        window.location.reload(); 
+      }
+    });
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-700 px-4 md:px-0 pb-10">
+      {arrivalNotification && (
+        <div className="fixed top-28 right-6 left-6 md:left-auto md:w-[400px] z-[3000] animate-in slide-in-from-top-10 duration-500">
+          <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border-4 border-green-500 flex items-center gap-6">
+            <div className="bg-green-600 p-3 rounded-2xl animate-bounce">
+              <Truck className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Live Update</p>
+              <p className="text-sm font-bold leading-tight">{arrivalNotification}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <header className="flex justify-between items-center py-6">
+        <BrandLogo />
+        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-200/20 space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="bg-green-100 p-3 rounded-2xl"><MapPin className="w-6 h-6 text-green-700" /></div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pickup Location</h2>
+          </div>
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic font-medium text-slate-600 leading-relaxed">
+            {property.address_text}
+          </div>
+        </div>
+
+        <div className="bg-slate-900 p-8 md:p-10 rounded-[3rem] shadow-2xl shadow-slate-900/40 space-y-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-10"><Calendar className="w-32 h-32" /></div>
+          <h2 className="text-xl font-bold tracking-tight relative z-10">Schedule</h2>
+          <div className="space-y-4 relative z-10">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Collection Day</p>
+            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+              <p className="text-2xl font-black italic">
+                {property.collection_day_of_week !== null 
+                  ?['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
+                  : "Pending Assignment"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
+        <div className="p-8 md:p-10 border-b border-slate-50 bg-slate-50/50">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Service History</h2>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Review past collections and provide feedback to our team.</p>
+        </div>
+        
+        <div className="p-4 md:p-10 space-y-6">
+          {history?.map((col: any) => (
+            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-black text-slate-900">
+                    {new Date(col.scheduled_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${col.status === 'collected' ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800'}`}>
+                    {col.status.replace('_', ' ')}
+                  </span>
+                </div>
+                {col.outcome_reason && (
+                  <p className="text-sm font-medium text-slate-600 bg-white p-3 rounded-xl border border-slate-200">
+                    <strong className="text-slate-900">Driver Note:</strong> {col.outcome_reason}
+                  </p>
+                )}
+              </div>
+
+              {col.proof_photo_url && (
+                <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-slate-200 hover:border-green-400 transition-colors group">
+                  <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-green-100 transition-colors"><ImageIcon className="w-5 h-5 text-slate-600 group-hover:text-green-700" /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proof of Service</p>
+                    <p className="text-sm font-bold text-slate-800">View Photo</p>
+                  </div>
+                </a>
+              )}
+
+              <div className="flex-1 lg:max-w-xs w-full">
+                {col.client_rating ? (
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
+                    <StarRating value={col.client_rating} disabled />
+                    {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}
+                  </div>
+                ) : (
+                  <>
+                    {activeFeedbackId === col.id ? (
+                      <div className="bg-white p-4 rounded-2xl border border-green-200 shadow-xl shadow-green-100 space-y-4 animate-in fade-in">
+                        <StarRating value={rating} onChange={setRating} />
+                        <textarea 
+                          value={remark} 
+                          onChange={(e) => setRemark(e.target.value)} 
+                          placeholder="Add a remark (optional)..." 
+                          className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-600 outline-none resize-none" 
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={() => setActiveFeedbackId(null)} className="flex-1 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                          <button 
+                            onClick={() => handleFeedbackSubmit(col.id)} 
+                            disabled={isPending} 
+                            className="flex-1 bg-green-600 text-white py-2 text-xs font-bold rounded-lg flex justify-center items-center gap-2 transition active:scale-95 disabled:opacity-50"
+                          >
+                            {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Submit'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => {setActiveFeedbackId(col.id); setRating(0); setRemark('');}} 
+                        className="w-full bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-600 hover:text-slate-900 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                      >
+                        <MessageSquare className="w-4 h-4" /> Leave Feedback
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+          {(!history || history.length === 0) && (
+            <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No past collection logs found.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/components/InteractiveMap.tsx">
+'use client'
+
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import type { LatLngExpression, DragEndEvent } from 'leaflet'
+import { useEffect, useRef, useState } from 'react'
+import L from 'leaflet'
+
+// --- FIX FOR ICON CRASH ---
+// Next.js handles image imports differently depending on configuration.
+// It might return a string, or an object with a .src property. 
+// This logic safely extracts the URL regardless of how Turbopack/Webpack bundles it.
+import iconAsset from 'leaflet/dist/images/marker-icon.png';
+import iconShadowAsset from 'leaflet/dist/images/marker-shadow.png';
+
+const iconUrl = typeof iconAsset === 'string' ? iconAsset : (iconAsset as any).src;
+const shadowUrl = typeof iconShadowAsset === 'string' ? iconShadowAsset : (iconShadowAsset as any).src;
+
+const DefaultIcon = L.icon({
+    iconUrl: iconUrl,
+    shadowUrl: shadowUrl,
+    iconSize:[25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+
+// --- Internal Components that live INSIDE MapContainer ---
+
+// 1. Component to smoothly update the map's center and zoom
+function MapUpdater({ center }: { center: LatLngExpression }) {
+  const map = useMap()
+  useEffect(() => {
+    map.flyTo(center, 17) // Use flyTo for a smooth animation, zoom to rooftop level
+  },[center, map])
+  return null
+}
+
+// 2. Component to handle the draggable marker and its events
+function DraggableMarker({ initialPosition, onMarkerDrag }: { initialPosition: LatLngExpression, onMarkerDrag: (pos: LatLngExpression, addr: string) => void }) {
+  const [position, setPosition] = useState(initialPosition)
+  const markerRef = useRef<L.Marker>(null)
+
+  // Ensure marker updates if parent changes the initial position
+  useEffect(() => {
+    setPosition(initialPosition)
+  }, [initialPosition])
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const marker = event.target;
+    const newPosition = marker.getLatLng();
+    setPosition(newPosition);
+
+    try {
+      // Reverse Geocode to get the address of the new coordinates
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${newPosition.lat}&lon=${newPosition.lng}&format=json`, {
+        headers: { 'User-Agent': 'SpotlessWorld/1.0 (contact@spotlessworld.com)' }
+      });
+      const data = await res.json()
+      onMarkerDrag(newPosition, data.display_name || 'Address not found')
+    } catch (err) {
+      console.error("Reverse geocoding failed", err)
+      onMarkerDrag(newPosition, 'Could not fetch address')
+    }
+  }
+
+  return (
+    <Marker
+      position={position}
+      draggable={true}
+      eventHandlers={{ dragend: handleDragEnd }}
+      ref={markerRef}
+    />
+  )
+}
+
+
+// --- Main Exported Component ---
+
+interface MapProps {
+  center: LatLngExpression
+  markerPosition: LatLngExpression
+  onMarkerDrag: (pos: LatLngExpression, addr: string) => void
+}
+
+export default function InteractiveMap({ center, markerPosition, onMarkerDrag }: MapProps) {
+  return (
+    <MapContainer center={center} zoom={13} scrollWheelZoom={true} style={{ height: '100%', width: '100%', minHeight: '400px' }}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      
+      {/* These components are now correctly placed as children of MapContainer */}
+      <MapUpdater center={center} />
+      <DraggableMarker initialPosition={markerPosition} onMarkerDrag={onMarkerDrag} />
+
+    </MapContainer>
+  )
+}
+</file>
+
+<file path="src/components/LogoutButton.tsx">
+'use client'
+
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
+
+export default function LogoutButton() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+    router.refresh()
+  }
+
+  return (
+    <button 
+      onClick={handleLogout}
+      className="flex items-center gap-2 text-red-600 hover:text-red-800 transition px-3 py-2 rounded-md hover:bg-red-50 font-medium"
+    >
+      <LogOut className="w-5 h-5" />
+      Sign Out
+    </button>
+  )
+}
+</file>
+
+<file path="src/lib/resend.ts">
+import { Resend } from 'resend';
+
+// This facilitates the transactional email logic for arrival notifications.
+export const resend = new Resend(process.env.RESEND_API_KEY);
+</file>
+
+<file path="src/lib/supabase/client.ts">
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+</file>
+
+<file path="src/lib/supabase/server.ts">
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function createClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          } catch (error) {
+            // Next.js read-only cookie error in Server Components is expected and ignored
+          }
+        },
+      },
+    }
+  )
+}
+</file>
+
+<file path="src/proxy.ts">
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return request.cookies.get(name)?.value },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+
+  // Use a try-catch to prevent UND_ERR_CONNECT_TIMEOUT from crashing the whole app
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
+    const isProtectedRoute = 
+      request.nextUrl.pathname.startsWith('/client') || 
+      request.nextUrl.pathname.startsWith('/driver') || 
+      request.nextUrl.pathname.startsWith('/admin')
+
+    if (!user && isProtectedRoute) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
+
+    if (user && isAuthRoute) {
+      const role = user.user_metadata?.role || 'client'
+      return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
+    }
+  } catch (e) {
+    // If Supabase times out, we allow the request to continue rather than hanging.
+    // The individual pages will handle the missing session.
+    console.error('[Proxy] Supabase connection timeout, skipping check.')
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "spotless-world",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.3",
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-leaflet": "^5.0.0",
+    "react-leaflet-cluster": "^4.1.3",
+    "resend": "^6.12.3",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="src/app/client/actions.ts">
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+/**
+ * Saves or updates a client's property location using PostGIS geometry.
+ */
+export async function savePropertyLocation(address: string, lat: string, lon: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) return { error: 'Unauthorized access. Please log in again.' }
+
+  const pointGeometry = `POINT(${lon} ${lat})`
+
+  const { error } = await supabase
+    .from('properties')
+    .insert({
+      client_id: user.id,
+      address_text: address,
+      location: pointGeometry,
+      collection_day_of_week: null 
+    })
+
+  if (error) {
+    console.error('[DB Error] Location Save:', error)
+    return { error: 'Failed to save property location. Please try again.' }
+  }
+
+  revalidatePath('/client/dashboard')
+  return { success: true }
+}
+
+/**
+ * Submits feedback for a completed waste collection event.
+ */
+export async function submitClientFeedback(collectionId: string, rating: number, remark: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized access. Please log in again.' }
+
+  const { error } = await supabase
+    .from('collections')
+    .update({ 
+      client_rating: rating,
+      client_remark: remark
+    })
+    .eq('id', collectionId)
+
+  if (error) {
+    console.error('[DB Error] Feedback Submit:', error)
+    return { error: 'Failed to submit feedback to the database.' }
+  }
+  
+  revalidatePath('/client/dashboard')
+  return { success: true }
+}
+</file>
+
+<file path="src/app/client/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import AddressGeocoder from '@/components/AddressGeocoder'
+import ClientDashboardView from '@/components/client/ClientDashboardView'
+import 'leaflet/dist/leaflet.css'
+
+export default async function ClientDashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return null
+
+  // Use maybeSingle() to prevent the 500 error on new accounts
+  const { data: property } = await supabase
+    .from('properties')
+    .select('*')
+    .eq('client_id', user.id)
+    .maybeSingle()
+
+  // If no property exists, render the Onboarding & Setup Flow
+  if (!property) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-black text-slate-900 mb-2">Welcome to SpotlexWorld</h1>
+          <p className="text-slate-500 font-medium">Let's get started by setting your verified pickup location.</p>
+        </div>
+        <AddressGeocoder />
+      </div>
+    )
+  }
+
+  // If property exists, fetch history for the feedback loop
+  const today = new Date().toISOString().split('T')[0]
+  const { data: history } = await supabase
+    .from('collections')
+    .select('*')
+    .eq('property_id', property.id)
+    .neq('status', 'pending')
+    .lte('scheduled_date', today)
+    .order('scheduled_date', { ascending: false })
+
+  return (
+    <div className="animate-in fade-in duration-1000">
+      <ClientDashboardView property={property} history={history ||[]} />
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { Toaster } from 'sonner'
+import 'leaflet/dist/leaflet.css'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'SpotlexWorld | Smart Waste Management',
+  description: 'The premium waste management platform for a cleaner world.',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-[#fcfcfc] text-slate-900 antialiased`}>
+        {children}
+        <Toaster position="top-center" richColors expand={true} duration={5000} />
+      </body>
+    </html>
+  )
+}
+</file>
+
+<file path="src/components/admin/GlobalAdminMap.tsx">
+'use client'
+
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { updatePropertyLocation } from '@/app/admin/actions'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2, MapPin, Save, User, Home, Filter, Layers, Search, X, Crosshair, Maximize, Minimize, CalendarDays } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
+
+import iconAsset from 'leaflet/dist/images/marker-icon.png'
+import iconShadowAsset from 'leaflet/dist/images/marker-shadow.png'
+const iconUrl = typeof iconAsset === 'string' ? iconAsset : (iconAsset as any).src;
+const shadowUrl = typeof iconShadowAsset === 'string' ? iconShadowAsset : (iconShadowAsset as any).src;
+
+const DefaultIcon = L.icon({ 
+  iconUrl, 
+  shadowUrl, 
+  iconSize: [25, 41], 
+  iconAnchor: [12, 41] 
+})
+
+const EditIcon = L.icon({ 
+  iconUrl, 
+  shadowUrl, 
+  iconSize: [35, 50], 
+  iconAnchor:[17, 50], 
+  className: 'hue-rotate-[140deg] saturate-200 brightness-110' 
+})
+
+// Custom animated icon for live trucks on the Admin map
+const LiveTruckIcon = L.divIcon({
+  html: `<div style="background-color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; width: 32px; height: 32px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11h12Z"/><path d="M14 8h4.38a2 2 0 0 1 1.6.82l2.3 3.44A2 2 0 0 1 22.5 13.5V17h-2.5"/><path d="M8 17.5A2.5 2.5 0 1 1 5.5 15 2.5 2.5 0 0 1 8 17.5Z"/><path d="M21 17.5A2.5 2.5 0 1 1 18.5 15 2.5 2.5 0 0 1 21 17.5Z"/></svg></div>`,
+  className: 'live-truck-marker animate-bounce',
+  iconSize: [32, 32],
+  iconAnchor:[16, 16]
+});
+
+// Robust PostGIS Parser
+function parsePostGISPoint(locationStr: string | null): [number, number] {
+  if (!locationStr || !locationStr.startsWith('POINT(')) return[6.5244, 3.3792];
+  const cleanStr = locationStr.slice(6, -1);
+  const parts = cleanStr.split(' ');
+  if (parts.length !== 2) return [6.5244, 3.3792];
+  return[parseFloat(parts[1]), parseFloat(parts[0])];
+}
+
+function MapController({ targetBounds, targetPos, isFullscreen }: { targetBounds?: L.LatLngBounds, targetPos?: [number, number], isFullscreen: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    setTimeout(() => { map.invalidateSize() }, 100);
+    if (targetBounds) {
+      map.flyToBounds(targetBounds, { padding: [50, 50], duration: 1.5 });
+    } else if (targetPos) {
+      map.flyTo(targetPos, 18, { duration: 1.5 });
+    }
+  }, [targetBounds, targetPos, isFullscreen, map]);
+  return null;
+}
+
+interface GlobalAdminMapProps {
+  properties: any[];
+  todayPropertyIds: string[];
+}
+
+function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('editId');
+  const supabase = createClient();
+
+  const [viewMode, setViewMode] = useState<'today' | 'all'>('today');
+  const[editingItem, setEditingItem] = useState<any | null>(null);
+  const [editAddress, setEditAddress] = useState('');
+  const [tempPos, setTempPos] = useState<[number, number] | null>(null);
+  const [mapTarget, setMapTarget] = useState<{bounds?: L.LatLngBounds, pos?: [number, number]}>({});
+  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // State for live moving trucks
+  const [activeTrucks, setActiveTrucks] = useState<Record<string, { lat: number, lng: number, name: string }>>({});
+
+  useEffect(() => {
+    // Listen to Truck Broadcasts
+    const channel = supabase.channel('truck-tracking')
+      .on('broadcast', { event: 'location_update' }, (payload) => {
+        const { driverId, driverName, lat, lng } = payload.payload;
+        setActiveTrucks(prev => ({
+          ...prev,
+          [driverId]: { lat, lng, name: driverName }
+        }));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (editId) {
+      const target = properties.find(p => p.id === editId);
+      if (target) {
+        setViewMode('all');
+        setEditingItem(target);
+        setEditAddress(target.address_text);
+        const pos = parsePostGISPoint(target.location);
+        setTempPos(pos);
+        setMapTarget({ pos });
+      }
+    } else if (properties.length > 0) {
+      const filtered = viewMode === 'today' 
+        ? properties.filter(p => todayPropertyIds.includes(p.id))
+        : properties;
+      if (filtered.length > 0) {
+        const b = L.latLngBounds(filtered.map(p => parsePostGISPoint(p.location)));
+        setMapTarget({ bounds: b });
+      }
+    }
+  },[editId, viewMode, properties, todayPropertyIds]);
+
+  const filteredProperties = viewMode === 'today' 
+    ? properties.filter(p => todayPropertyIds.includes(p.id))
+    : properties;
+
+  const handleAddressSearch = async () => {
+    if (!editAddress) return;
+    setSearchLoading(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(editAddress)}&format=json&limit=1&countrycodes=ng`, { headers: { 'User-Agent': 'SpotlexWorld/1.0' } });
+      const data = await res.json();
+      if (data && data[0]) {
+        const newPos: [number, number] =[parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        setTempPos(newPos);
+        const bbox = data[0].boundingbox;
+        const b = L.latLngBounds([bbox[0], bbox[2]], [bbox[1], bbox[3]]);
+        
+        const isSmallArea = b.getNorthWest().distanceTo(b.getSouthEast()) < 500;
+        if (isSmallArea) { setMapTarget({ pos: newPos }); } 
+        else { setMapTarget({ bounds: b }); }
+        toast.success("Location found and pinned.");
+      } else {
+        toast.error("Location not found in Nigeria.");
+      }
+    } catch (e) { toast.error("Search failed. Please try again."); } 
+    finally { setSearchLoading(false); }
+  };
+
+  const handleSave = async () => {
+    if (!tempPos || !editingItem) return
+    setLoading(true)
+    try {
+      await updatePropertyLocation(editingItem.id, tempPos[0], tempPos[1], editAddress)
+      setEditingItem(null); setTempPos(null);
+      toast.success("Location successfully relocated.");
+    } catch (e) { toast.error("Failed to save location."); } 
+    finally { setLoading(false) }
+  }
+
+  const containerClasses = isFullscreen 
+    ? "fixed inset-0 z-[9999] bg-white" 
+    : "relative h-full w-full group";
+
+  return (
+    <div className={containerClasses}>
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] transition-transform group-hover:translate-y-1">
+        <div className="bg-white/90 backdrop-blur-xl border border-slate-200 p-1.5 rounded-2xl shadow-2xl flex items-center gap-1">
+          <button 
+            onClick={() => setViewMode('today')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${viewMode === 'today' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'}`}
+          >
+            <Filter className="w-3.5 h-3.5" /> TODAY'S ROUTE
+          </button>
+          <button 
+            onClick={() => setViewMode('all')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${viewMode === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'}`}
+          >
+            <Layers className="w-3.5 h-3.5" /> ALL ASSETS
+          </button>
+        </div>
+      </div>
+
+      {editingItem && (
+        <div className="absolute top-6 right-6 bottom-6 w-full max-w-[400px] z-[1001] animate-in slide-in-from-right duration-500">
+          <div className="h-full bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+            <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Correct Spot</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase mt-1 tracking-widest italic">{editingItem.profiles?.full_name}</p>
+              </div>
+              <button onClick={() => {setEditingItem(null); setTempPos(null);}} className="p-2 hover:bg-slate-100 rounded-full transition"><X className="w-5 h-5 text-slate-400" /></button>
+            </div>
+            <div className="p-8 flex-1 space-y-8 overflow-y-auto">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Identify by Address</label>
+                <div className="relative">
+                   <textarea value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-medium text-slate-700 min-h-[120px] focus:ring-2 focus:ring-green-600 transition-all outline-none resize-none" placeholder="Enter city, street or house details..." />
+                   <button onClick={handleAddressSearch} disabled={searchLoading} className="absolute bottom-3 right-3 bg-white shadow-md p-2.5 rounded-xl text-slate-600 hover:text-green-600 transition-colors">
+                    {searchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                   </button>
+                </div>
+              </div>
+              <div className="p-5 bg-green-50/50 rounded-2xl border border-green-100/50 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-600 p-2 rounded-lg shadow-lg shadow-green-200"><Crosshair className="w-4 h-4 text-white" /></div>
+                  <h4 className="text-sm font-bold text-green-900">Pin Precision</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded-xl border border-green-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Latitude</p><p className="text-xs font-mono text-slate-700">{tempPos?.[0].toFixed(6)}</p></div>
+                  <div className="bg-white p-3 rounded-xl border border-green-100"><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Longitude</p><p className="text-xs font-mono text-slate-700">{tempPos?.[1].toFixed(6)}</p></div>
+                </div>
+              </div>
+            </div>
+            <div className="p-8 bg-slate-50 border-t border-slate-100">
+              <button onClick={handleSave} disabled={loading} className="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-slate-200 transition-all active:scale-95">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Update Asset Location</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <MapContainer center={[9.0820, 8.6753]} zoom={6} zoomControl={false} style={{ height: '100%', width: '100%', background: '#f8fafc' }}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        
+        {/* Render Live Vehicles */}
+        {Object.values(activeTrucks).map((truck, idx) => (
+          <Marker key={`truck-${idx}`} position={[truck.lat, truck.lng]} icon={LiveTruckIcon} zIndexOffset={1000}>
+            <Tooltip direction="top" offset={[0, -20]} className="premium-tooltip-admin" permanent>
+               <span className="font-bold flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div> {truck.name}'s Truck</span>
+            </Tooltip>
+          </Marker>
+        ))}
+
+        {filteredProperties.map((prop) => {
+          const pos = parsePostGISPoint(prop.location)
+          const isEditing = editingItem?.id === prop.id
+
+          return (
+            <Marker key={prop.id} position={isEditing && tempPos ? tempPos : pos} icon={isEditing ? EditIcon : DefaultIcon} draggable={isEditing} eventHandlers={{ dragend: (e) => setTempPos([e.target.getLatLng().lat, e.target.getLatLng().lng]) }}>
+              <Popup className="spotlex-popup-wrapper">
+                <div className="p-4 space-y-4 min-w-[240px] bg-white">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-slate-100 p-2.5 rounded-xl"><User className="w-4 h-4 text-slate-600" /></div>
+                    <div><p className="font-bold text-slate-900 text-sm leading-tight">{prop.profiles?.full_name}</p><p className="text-[10px] text-slate-400 font-black uppercase mt-1">SpotlexWorld Client</p></div>
+                  </div>
+                  <div className="space-y-1">
+                     <div className="flex items-center gap-1.5 text-slate-400"><Home className="w-3 h-3" /><span className="text-[10px] font-bold uppercase tracking-tight">Verified Address</span></div>
+                     <p className="text-xs text-slate-500 font-medium leading-relaxed bg-slate-50/80 p-3 rounded-xl border border-slate-100/50">{prop.address_text}</p>
+                  </div>
+                  {!editingItem && (
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      <button onClick={() => { setEditingItem(prop); setEditAddress(prop.address_text); setTempPos(pos) }} className="bg-slate-900 text-white py-3 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-black transition-all"><MapPin className="w-3 h-3" /> Adjust</button>
+                      <Link href={`/admin/clients/${prop.client_id}`} className="bg-green-600 text-white py-3 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-green-700 transition-all shadow-lg shadow-green-200"><CalendarDays className="w-3 h-3" /> Details</Link>
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          )
+        })}
+
+        <MapController targetBounds={mapTarget.bounds} targetPos={mapTarget.pos} isFullscreen={isFullscreen} />
+      </MapContainer>
+
+      {!isFullscreen ? (
+        <button onClick={() => setIsFullscreen(true)} className="absolute bottom-6 right-6 z-[1000] bg-slate-900/90 backdrop-blur text-white p-4 rounded-2xl shadow-2xl hover:scale-105 transition-transform"><Maximize className="w-6 h-6" /></button>
+      ) : (
+        <button onClick={() => setIsFullscreen(false)} className="absolute bottom-8 left-8 z-[1000] bg-slate-900/90 backdrop-blur text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform"><Minimize className="w-5 h-5" /> Exit Fullscreen</button>
+      )}
+    </div>
+  )
+}
+
+export default function GlobalAdminMap(props: GlobalAdminMapProps) {
+  return (
+    <Suspense fallback={<div className="h-full w-full bg-slate-50 animate-pulse" />}>
+      <MapInternal {...props} />
+    </Suspense>
+  )
+}
+</file>
+
+<file path="src/components/driver/DriverMapWrapper.tsx">
+'use client'
+
+import dynamic from 'next/dynamic'
+import { useState, useMemo, useTransition } from 'react'
+import { Truck, Play, Loader2, UserPlus, CheckSquare, Square } from 'lucide-react'
+import { initializeDriverShift } from '@/app/driver/actions'
+import { toast } from 'sonner'
+
+interface DriverMapWrapperProps {
+  collections: any[];
+  assistants: any[];
+  driverId: string;
+  driverName: string;
+}
+
+export default function DriverMapWrapper({ collections, assistants, driverId, driverName }: DriverMapWrapperProps) {
+  const[isShiftStarted, setIsShiftStarted] = useState(false)
+  const [selectedAssistants, setSelectedAssistants] = useState<string[]>([])
+  
+  // React 19 Standard for async UI transitions
+  const [isPending, startTransition] = useTransition()
+
+  const RouteMap = useMemo(() => dynamic(() => import('./RouteMap'), { 
+      ssr: false,
+      loading: () => (
+        <div className="h-[500px] md:h-[650px] w-full bg-slate-50 flex flex-col items-center justify-center animate-pulse rounded-[2rem]">
+           <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
+           <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest text-center">Resolving Urban Routes...</p>
+        </div>
+      )
+  }),[])
+
+  const toggleAssistant = (id: string) => {
+    setSelectedAssistants(prev => 
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    )
+  }
+
+  const handleStartShift = () => {
+    const colIds = collections.map(c => c.id)
+    
+    startTransition(async () => {
+      if (colIds.length > 0) {
+        const result = await initializeDriverShift(colIds, selectedAssistants)
+        if (result.error) {
+          toast.error(result.error)
+          return
+        }
+      }
+      setIsShiftStarted(true)
+      toast.success("Shift Initialized Successfully.")
+    })
+  }
+
+  if (!isShiftStarted) {
+    return (
+      <div className="h-[500px] md:h-[650px] w-full bg-slate-900 flex items-center justify-center p-6 text-center rounded-[2rem]">
+        <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 shadow-2xl space-y-8">
+          <div className="bg-slate-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto text-slate-900">
+            <Truck size={40} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Shift Initialization</h2>
+            <p className="text-slate-500 text-sm mt-2">Select your crew members for today's route. You can select multiple assistants or proceed alone.</p>
+          </div>
+
+          <div className="space-y-4 text-left">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+              <UserPlus size={14}/> Available Assistants
+            </label>
+            <div className="bg-slate-50 rounded-2xl p-2 max-h-48 overflow-y-auto space-y-1">
+              {assistants.length === 0 && <p className="p-4 text-xs font-bold text-slate-400 text-center">No assistants available.</p>}
+              {assistants.map((asst) => {
+                const isSelected = selectedAssistants.includes(asst.id);
+                return (
+                  <button
+                    key={asst.id}
+                    onClick={() => toggleAssistant(asst.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${isSelected ? 'bg-green-100 text-green-900' : 'hover:bg-slate-200 text-slate-600'}`}
+                  >
+                    {isSelected ? <CheckSquare className="w-5 h-5 text-green-600" /> : <Square className="w-5 h-5 text-slate-400" />}
+                    <span className="font-bold text-sm">{asst.full_name}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-[10px] font-bold text-slate-400 text-center italic">Leave empty to proceed with No Assistant.</p>
+          </div>
+
+          <button 
+            disabled={isPending}
+            onClick={handleStartShift}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-green-200 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Play className="w-5 h-5 fill-white" /> Start Shift</>}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return <RouteMap collections={collections} driverId={driverId} driverName={driverName} />
+}
+</file>
+
+<file path="src/components/driver/RouteMap.tsx">
+'use client'
+
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Bell, Loader2, Maximize, Minimize, WifiOff, Camera, Upload, X, CheckSquare } from 'lucide-react'
+import { toast } from 'sonner'
+import { submitCollectionOutcome } from '@/app/driver/actions'
+
+import iconAsset from 'leaflet/dist/images/marker-icon.png'
+import iconShadowAsset from 'leaflet/dist/images/marker-shadow.png'
+const iconUrl = typeof iconAsset === 'string' ? iconAsset : (iconAsset as any).src;
+const shadowUrl = typeof iconShadowAsset === 'string' ? iconShadowAsset : (iconShadowAsset as any).src;
+const BaseIcon = L.icon({ iconUrl, shadowUrl, iconSize:[25, 41], iconAnchor:[12, 41] })
+
+const DriverLiveIcon = L.divIcon({
+  html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);"></div>`,
+  className: 'driver-live-dot',
+  iconSize:[16, 16],
+  iconAnchor: [8, 8]
+})
+
+function parsePostGISPoint(locationStr: string | null): [number, number] {
+  if (!locationStr || !locationStr.startsWith('POINT(')) return [6.5244, 3.3792];
+  const cleanStr = locationStr.slice(6, -1);
+  const parts = cleanStr.split(' ');
+  if (parts.length !== 2) return[6.5244, 3.3792];
+  return [parseFloat(parts[1]), parseFloat(parts[0])];
+}
+
+function MapController({ coords, isFullscreen }: { coords: [number, number][], isFullscreen: boolean }) {
+  const map = useMap()
+  useEffect(() => {
+    const timer = setTimeout(() => { map.invalidateSize() }, 250);
+    if (coords.length > 0) {
+      map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] })
+    }
+    return () => clearTimeout(timer);
+  },[coords, map, isFullscreen])
+  return null
+}
+
+interface OfflineAction {
+  colId: string; email: string; clientName: string; address: string; timestamp: number;
+}
+
+export default function RouteMap({ collections, driverId, driverName }: { collections: any[], driverId: string, driverName: string }) {
+  const [localCollections, setLocalCollections] = useState(collections)
+  const[routeData, setRouteData] = useState<[number, number][]>([])
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const[driverLocation, setDriverLocation] = useState<[number, number] | null>(null)
+  const [isOffline, setIsOffline] = useState(false)
+  
+  const [outcomeModal, setOutcomeModal] = useState<any | null>(null)
+  const [outcomeType, setOutcomeType] = useState<'collected' | 'no_answer' | 'other'>('collected')
+  const [outcomeFile, setOutcomeFile] = useState<File | null>(null)
+  const [outcomeReason, setOutcomeReason] = useState('')
+  const[isSubmittingOutcome, setIsSubmittingOutcome] = useState(false)
+
+  const supabase = createClient()
+
+  useEffect(() => {
+    setIsOffline(!navigator.onLine);
+    const channel = supabase.channel('truck-tracking');
+    let watchId: number;
+
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED' && 'geolocation' in navigator) {
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            setDriverLocation([lat, lng]);
+            channel.send({ type: 'broadcast', event: 'location_update', payload: { driverId, driverName, lat, lng } });
+          },
+          (err) => console.warn("GPS Tracking disabled:", err),
+          { enableHighAccuracy: true, maximumAge: 15000 }
+        );
+      }
+    });
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+      supabase.removeChannel(channel);
+    };
+  },[driverId, driverName, supabase]);
+
+  const processOfflineQueue = useCallback(async () => {
+    const queueRaw = localStorage.getItem('spotlex_offline_queue');
+    if (!queueRaw) return;
+    const queue: OfflineAction[] = JSON.parse(queueRaw);
+    if (queue.length === 0) return;
+
+    toast.loading(`Syncing ${queue.length} offline collections...`, { id: 'sync-toast' });
+    for (const action of queue) {
+      try {
+        await supabase.from('collections').update({ status: 'arrived' }).eq('id', action.colId);
+        await fetch('/api/notify-arrival', { method: 'POST', body: JSON.stringify({ email: action.email, clientName: action.clientName, address: action.address }) });
+      } catch (e) { console.error("Sync failed", e); }
+    }
+    localStorage.removeItem('spotlex_offline_queue');
+    toast.success("All offline collections synchronized!", { id: 'sync-toast' });
+  }, [supabase]);
+
+  useEffect(() => {
+    const handleOnline = () => { setIsOffline(false); processOfflineQueue(); };
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    if (navigator.onLine) processOfflineQueue();
+    return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
+  },[processOfflineQueue]);
+
+  const stopCoords = useMemo(() => localCollections.map(col => parsePostGISPoint(col.properties.location)),[localCollections]);
+  const coordString = useMemo(() => {
+    if (stopCoords.length < 2) return null;
+    return stopCoords.map(c => `${c[1]},${c[0]}`).join(';');
+  },[stopCoords]);
+
+  useEffect(() => {
+    const fetchOptimizedRoute = async () => {
+      if (!coordString) return;
+      try {
+        const res = await fetch(`https://router.project-osrm.org/trip/v1/driving/${coordString}?geometries=geojson&source=first`);
+        const data = await res.json();
+        if (data.trips && data.trips[0]) {
+          const polyline = data.trips[0].geometry.coordinates.map((c: any) => [c[1], c[0]]);
+          setRouteData(polyline);
+        }
+      } catch (err) { console.error("TSP Optimization failed:", err); }
+    };
+    fetchOptimizedRoute();
+  }, [coordString]);
+
+  const handleArrived = async (col: any) => {
+    setActionLoading(col.id);
+    setLocalCollections(prev => prev.map(c => c.id === col.id ? { ...c, status: 'arrived' } : c));
+
+    if (isOffline) {
+      const queue: OfflineAction[] = JSON.parse(localStorage.getItem('spotlex_offline_queue') || '[]');
+      queue.push({ colId: col.id, email: col.properties.profiles.email, clientName: col.properties.profiles.full_name, address: col.properties.address_text, timestamp: Date.now() });
+      localStorage.setItem('spotlex_offline_queue', JSON.stringify(queue));
+      toast.info("Offline: Action logged to device queue.");
+      setActionLoading(null);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('collections').update({ status: 'arrived' }).eq('id', col.id);
+      if (error) throw error;
+      toast.success("Arrival logged successfully.");
+      await fetch('/api/notify-arrival', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: col.properties.profiles.email, clientName: col.properties.profiles.full_name, address: col.properties.address_text })
+      });
+    } catch (e) {
+      toast.error("Network error. Try again.");
+      setLocalCollections(prev => prev.map(c => c.id === col.id ? { ...c, status: 'pending' } : c));
+    } finally { setActionLoading(null); }
+  };
+
+  const submitOutcome = async () => {
+    if (!outcomeModal) return;
+    setIsSubmittingOutcome(true);
+    let photoUrl = null;
+
+    try {
+      if (outcomeType === 'collected' && outcomeFile) {
+        const fileExt = outcomeFile.name.split('.').pop();
+        const fileName = `${outcomeModal.id}-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('collection_proofs')
+          .upload(fileName, outcomeFile);
+
+        if (uploadError) throw uploadError;
+        photoUrl = supabase.storage.from('collection_proofs').getPublicUrl(fileName).data.publicUrl;
+      }
+
+      const result = await submitCollectionOutcome(outcomeModal.id, outcomeType, outcomeReason, photoUrl || undefined);
+      
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      setLocalCollections(prev => prev.map(c => c.id === outcomeModal.id ? { ...c, status: outcomeType } : c));
+      toast.success("Collection outcome securely logged.");
+      setOutcomeModal(null);
+      setOutcomeFile(null);
+      setOutcomeReason('');
+    } catch (err: any) {
+      toast.error(err.message || "Failed to log outcome.");
+    } finally {
+      setIsSubmittingOutcome(false);
+    }
+  }
+
+  const containerClasses = isFullscreen 
+    ? "fixed inset-0 z-[9999] bg-slate-100" 
+    : "relative h-[500px] md:h-[650px] w-full rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-inner";
+
+  return (
+    <>
+      <div className={containerClasses}>
+        <MapContainer center={[9.082, 8.675]} zoom={6} zoomControl={false} style={{ height: '100%', width: '100%' }}>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          {driverLocation && <Marker position={driverLocation} icon={DriverLiveIcon} zIndexOffset={1000} />}
+          {stopCoords.map((pos, idx) => {
+            const col = localCollections[idx];
+            return (
+              <Marker key={idx} position={pos} icon={BaseIcon}>
+                <Popup className="spotlex-popup-wrapper">
+                  <div className="p-4 space-y-4 min-w-[240px]">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Destination</p>
+                      <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-md ${col.status === 'arrived' ? 'bg-orange-100 text-orange-600' : col.status === 'collected' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+                        {col.status.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-slate-800 leading-tight">{col.properties.address_text}</p>
+                    
+                    {col.status === 'pending' && (
+                      <button disabled={!!actionLoading} onClick={() => handleArrived(col)} className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-black transition-all">
+                        {actionLoading === col.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Bell className="w-3 h-3" /> Arrived at Gate</>}
+                      </button>
+                    )}
+
+                    {col.status === 'arrived' && (
+                      <button onClick={() => setOutcomeModal(col)} className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-green-700 transition-all">
+                        <CheckSquare className="w-3 h-3" /> Log Outcome
+                      </button>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
+          {routeData.length > 0 && <Polyline positions={routeData} pathOptions={{ color: '#16a34a', weight: 6, opacity: 0.8 }} />}
+          <MapController coords={stopCoords} isFullscreen={isFullscreen} />
+        </MapContainer>
+
+        {isOffline && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] bg-orange-600 text-white px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-xl animate-pulse">
+            <WifiOff className="w-3 h-3" /> Offline
+          </div>
+        )}
+
+        {!isFullscreen ? (
+          <button onClick={() => setIsFullscreen(true)} className="absolute bottom-6 right-6 z-[1000] bg-slate-900/90 backdrop-blur text-white p-4 rounded-2xl shadow-2xl hover:scale-105 transition-transform"><Maximize className="w-6 h-6" /></button>
+        ) : (
+          <button onClick={() => setIsFullscreen(false)} className="absolute bottom-8 left-8 z-[1000] bg-slate-900/90 backdrop-blur text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform"><Minimize className="w-5 h-5" /> Exit Fullscreen</button>
+        )}
+      </div>
+
+      {outcomeModal && (
+        <div className="fixed inset-0 z-[10000] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="font-black text-slate-900 text-lg">Log Collection Result</h3>
+              <button onClick={() => setOutcomeModal(null)} className="p-2 hover:bg-slate-200 rounded-full transition"><X className="w-5 h-5 text-slate-500" /></button>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Status</label>
+                <div className="flex gap-2">
+                  <button onClick={() => setOutcomeType('collected')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${outcomeType === 'collected' ? 'bg-green-600 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Collected</button>
+                  <button onClick={() => setOutcomeType('no_answer')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${outcomeType === 'no_answer' ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>No Answer</button>
+                  <button onClick={() => setOutcomeType('other')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${outcomeType === 'other' ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Other</button>
+                </div>
+              </div>
+
+              {outcomeType === 'collected' && (
+                <div className="space-y-3 animate-in fade-in">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proof of Collection</label>
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Camera className="w-8 h-8 text-green-600 mb-2" />
+                      <p className="text-sm font-bold text-slate-600">{outcomeFile ? outcomeFile.name : 'Tap to Open Camera'}</p>
+                    </div>
+                    <input type="file" className="hidden" accept="image/*" capture="environment" onChange={(e) => setOutcomeFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+              )}
+
+              {(outcomeType === 'no_answer' || outcomeType === 'other') && (
+                <div className="space-y-3 animate-in fade-in">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason / Notes</label>
+                  <textarea 
+                    value={outcomeReason}
+                    onChange={(e) => setOutcomeReason(e.target.value)}
+                    placeholder="Provide details on why collection failed..."
+                    className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-green-600 outline-none resize-none h-32"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100">
+              <button 
+                onClick={submitOutcome}
+                disabled={isSubmittingOutcome || (outcomeType === 'collected' && !outcomeFile)}
+                className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-50"
+              >
+                {isSubmittingOutcome ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Upload className="w-5 h-5" /> Submit & Continue Route</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+</file>
+
+<file path="src/app/admin/actions.ts">
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+export async function updatePropertyLocation(id: string, lat: number, lon: number, manualAddress?: string) {
+  const supabase = await createClient()
+  let finalAddress = manualAddress;
+  
+  if (!finalAddress) {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, {
+      headers: { 'User-Agent': 'SpotlexWorld/1.0' }
+    })
+    const data = await res.json()
+    finalAddress = data.display_name || 'Updated by Admin'
+  }
+  
+  const { data, error } = await supabase
+    .from('properties')
+    .update({
+      location: `POINT(${lon} ${lat})`,
+      address_text: finalAddress
+    })
+    .eq('id', id)
+    .select() // Forces Supabase to return the updated row
+
+  if (error) throw new Error("Failed to update location in database.")
+  if (!data || data.length === 0) throw new Error("Update blocked by Database Security (RLS). Please apply the Admin SQL patch.")
+  
+  revalidatePath('/admin/dashboard')
+}
+
+export async function updateClientProfile(formData: FormData) {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const full_name = formData.get('full_name') as string
+  const phone = formData.get('phone') as string
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ full_name, phone })
+    .eq('id', id)
+    .select()
+
+  if (error) return { error: "Database error occurred." }
+  if (!data || data.length === 0) return { error: "Update blocked by Database Security (RLS). Please apply the Admin SQL patch." }
+  
+  revalidatePath('/admin/clients')
+  revalidatePath(`/admin/clients/${id}`)
+  return { success: true }
+}
+
+export async function updatePropertySchedule(propertyId: string, clientId: string, dayOfWeek: number) {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .from('properties')
+    .update({ collection_day_of_week: dayOfWeek })
+    .eq('id', propertyId)
+    .select()
+
+  if (error) return { error: "Failed to update schedule in database." }
+  if (!data || data.length === 0) return { error: "Action blocked by Database Security (RLS). Please apply the Admin SQL patch." }
+  
+  revalidatePath(`/admin/clients/${clientId}`)
+  return { success: true }
+}
+</file>
+
+<file path="src/app/admin/clients/[id]/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { ArrowLeft, Save, User, Phone, ShieldCheck, CalendarDays } from 'lucide-react'
+import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
+import { updateClientProfile } from '@/app/admin/actions'
+import ScheduleEditor from '@/components/admin/ScheduleEditor'
+
+export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient()
+  
+  const { data: client } = await supabase
+    .from('profiles')
+    .select('*, properties(*)')
+    .eq('id', id)
+    .single()
+
+  if (!client) {
+    return (
+      <div className="p-20 text-center">
+        <h2 className="text-2xl font-black text-slate-900">Account not found.</h2>
+        <Link href="/admin/clients" className="text-green-600 font-bold underline mt-4 inline-block">Return to Registry</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 p-4 md:p-0">
+      <div className="flex items-center gap-6">
+        <Link href="/admin/clients" className="p-3 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-900 hover:text-white transition-all text-slate-600">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <BrandLogo />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Profile Modification Section */}
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 relative overflow-hidden h-fit">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+             <ShieldCheck className="w-32 h-32 text-slate-900" />
+          </div>
+          
+          <h1 className="text-2xl font-black text-slate-900 mb-2">Modify Profile</h1>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">System ID: {client.id.split('-')[0]}</p>
+          
+          {/* Using standard form submission for Profile, catching RLS errors via a wrapper action if needed */}
+          <form action={updateClientProfile} className="space-y-8 relative z-10">
+            <input type="hidden" name="id" value={client.id} />
+            
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
+              <div className="relative group">
+                <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+                <input 
+                  name="full_name"
+                  defaultValue={client.full_name}
+                  required
+                  className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Verified Phone</label>
+              <div className="relative group">
+                <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+                <input 
+                  name="phone"
+                  defaultValue={client.phone || ''}
+                  className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
+                />
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <button 
+                type="submit"
+                className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-slate-300 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+              >
+                <Save className="w-5 h-5" /> Commit Changes
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Collection Scheduling Section */}
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 h-fit">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="bg-green-100 p-3 rounded-2xl">
+              <CalendarDays className="w-6 h-6 text-green-700" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deployment Schedule</h1>
+          </div>
+
+          <div className="space-y-6">
+            {(client.properties as any[])?.map((prop) => (
+              <ScheduleEditor key={prop.id} property={prop} clientId={client.id} />
+            ))}
+            
+            {(!client.properties || (client.properties as any[]).length === 0) && (
+              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Linked Property</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/driver/actions.ts">
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+/**
+ * Initializes a driver's shift by assigning the selected assistants to today's collections.
+ * Renamed to bust the Turbopack cache.
+ */
+export async function initializeDriverShift(collectionIds: string[], assistantIds: string[]) {
+  const supabase = await createClient()
+  
+  const { error } = await supabase
+    .from('collections')
+    .update({ assistant_ids: assistantIds })
+    .in('id', collectionIds)
+
+  if (error) {
+    console.error('[DB Error] Shift Init:', error)
+    return { error: 'Failed to synchronize shift data with the server.' }
+  }
+  
+  revalidatePath('/driver/dashboard')
+  return { success: true }
+}
+
+/**
+ * Logs the final outcome (Collected, No Answer, etc.) and attaches photo proof.
+ * Renamed to bust the Turbopack cache.
+ */
+export async function submitCollectionOutcome(
+  collectionId: string, 
+  status: 'collected' | 'no_answer' | 'other', 
+  reason?: string, 
+  photoUrl?: string
+) {
+  const supabase = await createClient()
+  
+  const { error } = await supabase
+    .from('collections')
+    .update({ 
+      status: status,
+      outcome_reason: reason || null,
+      proof_photo_url: photoUrl || null,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', collectionId)
+
+  if (error) {
+    console.error('[DB Error] Outcome Submit:', error)
+    return { error: 'Failed to record the collection outcome.' }
+  }
+  
+  revalidatePath('/driver/dashboard')
+  return { success: true }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { Leaf, Map, Truck, BellRing, ArrowRight } from 'lucide-react'
+
+export default async function LandingPage() {
+  const supabase = await createClient()
+  // Check if a user is currently logged in
+  const { data: { user } } = await supabase.auth.getUser()
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col font-sans">
+      {/* Navigation */}
+      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-green-700">
+            <Leaf className="w-8 h-8" />
+            <span className="text-2xl font-black tracking-tight">SpotlexWorld</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <Link 
+                href="/dashboard" 
+                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200 flex items-center gap-2"
+              >
+                Go to Dashboard <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login" className="text-gray-600 hover:text-green-700 font-semibold px-4 py-2 transition">
+                  Log In
+                </Link>
+                <Link 
+                  href="/auth/register" 
+                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-block bg-green-50 border border-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-6">
+              SMART WASTE MANAGEMENT
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-tight mb-8">
+              A Cleaner City, <br className="hidden md:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-400">
+                Delivered Smartly.
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Spotless World connects residents with waste collection teams using real-time GPS routing, instant notifications, and proof of collection to ensure your neighborhood stays pristine.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {user ? (
+                <Link 
+                  href="/dashboard" 
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200 flex items-center justify-center gap-2"
+                >
+                  Enter Dashboard <ArrowRight className="w-5 h-5" />
+                </Link>
+              ) : (
+                <>
+                  <Link 
+                    href="/auth/register" 
+                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200"
+                  >
+                    Register as Resident
+                  </Link>
+                  <Link 
+                    href="/auth/login" 
+                    className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg transition"
+                  >
+                    Team Login
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 md:mt-32">
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="bg-blue-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <Map className="w-7 h-7 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Precision Geocoding</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Pinpoint your exact address on our interactive map. Our drivers use advanced spatial routing to find your home without confusion.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="bg-green-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <Truck className="w-7 h-7 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Optimized Routing</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Our administrative engine calculates the fastest Traveling Salesperson route, minimizing fuel and maximizing collection efficiency.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="bg-orange-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <BellRing className="w-7 h-7 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Real-time Alerts</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Receive instant emails and dashboard notifications the moment our trucks arrive at your gate. No more waiting outside.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      {/* Footer */}
+      <footer className="border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
+        <p>&copy; {new Date().getFullYear()} SpotlexWorld. All rights reserved.</p>
+      </footer>
+    </div>
+  )
+}
+</file>
+
+</files>

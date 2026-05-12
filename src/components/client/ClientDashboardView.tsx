@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import BrandLogo from '@/components/BrandLogo'
 import { Calendar, MapPin, Truck, Star, Image as ImageIcon, MessageSquare, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { submitClientFeedback } from '@/app/client/actions'
@@ -48,11 +47,16 @@ export default function ClientDashboardView({ property, history }: { property: a
       (payload) => {
         if (payload.new.status === 'arrived') {
           setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
-          toast.success("🚛 Truck Arrived!", { description: "Our team is at your gate.", duration: 15000 });
+          toast.success("🚛 Truck Arrived!", { 
+            description: "Our team is at your gate.", 
+            duration: 15000 
+          });
           setTimeout(() => setArrivalNotification(null), 20000)
         }
         if (payload.new.status === 'collected') {
-          toast.success("✅ Waste Collected!", { description: "Thank you for using SpotlexWorld." });
+          toast.success("✅ Waste Collected!", { 
+            description: "Thank you for using SpotlexWorld." 
+          });
           setTimeout(() => window.location.reload(), 2000);
         }
       })
@@ -69,6 +73,7 @@ export default function ClientDashboardView({ property, history }: { property: a
 
     startTransition(async () => {
       const response = await submitClientFeedback(colId, rating, remark);
+      
       if (response.error) {
         toast.error(response.error);
       } else {
@@ -95,12 +100,13 @@ export default function ClientDashboardView({ property, history }: { property: a
         </div>
       )}
 
-      <header className="flex justify-between items-center py-6">
-        <BrandLogo />
-        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active
+      {/* Clean Mobile-Optimized Header (Logo removed to prevent duplication) */}
+      <div className="flex justify-between items-center py-2 md:py-6">
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight hidden md:block">Resident Dashboard</h1>
+        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2 w-fit">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active Service
         </div>
-      </header>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-200/20 space-y-8">
@@ -121,7 +127,7 @@ export default function ClientDashboardView({ property, history }: { property: a
             <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
               <p className="text-2xl font-black italic">
                 {property.collection_day_of_week !== null 
-                  ?['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
+                  ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
                   : "Pending Assignment"}
               </p>
             </div>
@@ -137,7 +143,7 @@ export default function ClientDashboardView({ property, history }: { property: a
         
         <div className="p-4 md:p-10 space-y-6">
           {history?.map((col: any) => (
-            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between transition-colors hover:border-green-200">
+            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-slate-900">
@@ -166,7 +172,7 @@ export default function ClientDashboardView({ property, history }: { property: a
 
               <div className="flex-1 lg:max-w-xs w-full">
                 {col.client_rating ? (
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
                     <StarRating value={col.client_rating} disabled />
                     {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}

@@ -48,6 +48,7 @@ postcss.config.mjs
 public/file.svg
 public/globe.svg
 public/next.svg
+public/spotlex_logo.jpg
 public/vercel.svg
 public/window.svg
 README.md
@@ -56,6 +57,7 @@ src/app/admin/clients/[id]/page.tsx
 src/app/admin/clients/page.tsx
 src/app/admin/dashboard/page.tsx
 src/app/admin/layout.tsx
+src/app/admin/profile/page.tsx
 src/app/api/notify-arrival/route.ts
 src/app/auth/login/page.tsx
 src/app/auth/register/page.tsx
@@ -63,16 +65,20 @@ src/app/auth/team-invite/page.tsx
 src/app/client/actions.ts
 src/app/client/dashboard/page.tsx
 src/app/client/layout.tsx
+src/app/client/profile/page.tsx
 src/app/dashboard/page.tsx
 src/app/driver/actions.ts
 src/app/driver/dashboard/page.tsx
 src/app/driver/layout.tsx
+src/app/driver/profile/page.tsx
 src/app/favicon.ico
 src/app/globals.css
 src/app/layout.tsx
 src/app/page.tsx
+src/app/profile/actions.ts
 src/components/AddressGeocoder.tsx
 src/components/admin/AdminMapWrapper.tsx
+src/components/admin/ClientProfileEditor.tsx
 src/components/admin/GlobalAdminMap.tsx
 src/components/admin/ScheduleEditor.tsx
 src/components/BrandLogo.tsx
@@ -81,6 +87,8 @@ src/components/driver/DriverMapWrapper.tsx
 src/components/driver/RouteMap.tsx
 src/components/InteractiveMap.tsx
 src/components/LogoutButton.tsx
+src/components/ProfileSettings.tsx
+src/components/UserMenu.tsx
 src/lib/resend.ts
 src/lib/supabase/client.ts
 src/lib/supabase/server.ts
@@ -347,479 +355,22 @@ export default async function AdminClientsPage() {
 }
 </file>
 
-<file path="src/app/admin/dashboard/page.tsx">
+<file path="src/app/admin/profile/page.tsx">
 import { createClient } from '@/lib/supabase/server'
-import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight } from 'lucide-react'
-import AdminMapWrapper from '@/components/admin/AdminMapWrapper'
-import Link from 'next/link'
-import 'leaflet/dist/leaflet.css'
+import ProfileSettings from '@/components/ProfileSettings'
 
-export default async function AdminDashboardPage() {
+export default async function AdminProfilePage() {
   const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
-
-  const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
-  const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
-  
-  const { data: activeCollections } = await supabase
-    .from('collections')
-    .select(`
-      id, 
-      status, 
-      property_id,
-      driver:profiles!collections_driver_id_fkey(full_name),
-      assistant:profiles!collections_assistant_id_fkey(full_name)
-    `)
-    .eq('scheduled_date', today)
-
-  const todayPropertyIds = activeCollections?.map(col => col.property_id) || []
-
-  const { data: properties } = await supabase
-    .from('properties')
-    .select('id, address_text, location, client_id, profiles(full_name)')
-    .not('location', 'is', null)
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-slate-500 font-medium mt-1">Operational command and logistics for SpotlexWorld.</p>
-        </div>
-        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200">
-          {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {/* FIXED: Outer Link with inner content */}
-        <Link href="/admin/clients">
-          <div className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center gap-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-green-200 cursor-pointer group">
-            <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-lg transition-colors group-hover:bg-green-600">
-              <Users className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">
-                Residents <ArrowUpRight className="w-3.5 h-3.5 text-green-600 opacity-0 group-hover:opacity-100 transition-all" />
-              </p>
-              <p className="text-3xl font-black text-slate-900 tracking-tight">{totalClients || 0}</p>
-            </div>
-          </div>
-        </Link>
-
-        <StatCard title="Today's Target" value={stats?.total_scheduled || 0} icon={<ClipboardList className="w-6 h-6" />} color="bg-slate-100 text-slate-900" />
-        <StatCard title="Completed" value={stats?.total_fulfilled || 0} icon={<CheckCircle2 className="w-6 h-6" />} color="bg-green-100 text-green-700" />
-        <StatCard title="Active Shifts" value={stats?.active_drivers || 0} icon={<Truck className="w-6 h-6" />} color="bg-orange-100 text-orange-700" />
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-        <div className="xl:col-span-2 bg-white p-2 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 overflow-hidden relative group">
-          <div className="p-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest">Global Asset Map</h2>
-            </div>
-          </div>
-          <div className="h-[500px] md:h-[650px] w-full rounded-[2.5rem] overflow-hidden border border-slate-50">
-             <AdminMapWrapper 
-                properties={properties || []} 
-                todayPropertyIds={todayPropertyIds} 
-              />
-          </div>
-        </div>
-
-        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
-          <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-10 flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-600 rounded-full"></div> Collection Monitor
-          </h2>
-          <div className="space-y-8 overflow-y-auto max-h-[550px] pr-4 custom-scrollbar">
-            {activeCollections?.map((col) => (
-              <div key={col.id} className="relative pl-6 border-l-2 border-slate-100 hover:border-green-500 transition-colors py-1">
-                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${col.status === 'collected' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
-                <div className="flex justify-between items-center mb-1">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SHIFT-LOG</p>
-                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
-                     col.status === 'collected' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-500'
-                   }`}>{col.status}</span>
-                </div>
-                <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
-                <p className="text-[10px] font-medium text-slate-400">Helper: {(col.assistant as any)?.full_name || 'None Assigned'}</p>
-              </div>
-            ))}
-            {activeCollections?.length === 0 && (
-              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Active Logs</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function StatCard({ title, value, icon, color }: any) {
-  return (
-    <div className="bg-white p-7 rounded-[2.5rem] border border-slate-50 shadow-xl shadow-slate-200/10 flex items-center gap-6">
-      <div className={`${color} p-4 rounded-2xl shadow-sm`}>
-        {icon}
-      </div>
+    <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-        <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Administrator Profile</h1>
+        <p className="text-slate-500 font-medium mt-1">Manage your command center credentials.</p>
       </div>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/admin/layout.tsx">
-import LogoutButton from '@/components/LogoutButton'
-import BrandLogo from '@/components/BrandLogo'
-import { ReactNode } from 'react'
-
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <BrandLogo />
-          <nav className="flex items-center gap-6">
-            <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
-            <LogoutButton />
-          </nav>
-        </div>
-      </header>
-      
-      <main className="flex-1 max-w-7xl mx-auto px-4 md:px-8 py-10 w-full animate-in fade-in duration-500">
-        {children}
-      </main>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/api/notify-arrival/route.ts">
-import { resend } from '@/lib/resend';
-import { NextResponse } from 'next/server';
-
-export async function POST(req: Request) {
-  try {
-    const { email, clientName, address } = await req.json();
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
-    }
-
-    const { data, error } = await resend.emails.send({
-      from: 'SpotlexWorld <onboarding@resend.dev>', // Replace with your verified domain in production
-      to: [email],
-      subject: '🚛 SpotlexWorld: We are at your gate!',
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; background-color: #ffffff;">
-          <div style="background-color: #059669; padding: 40px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">SpotlexWorld</h1>
-          </div>
-          <div style="padding: 40px; color: #0f172a;">
-            <h2 style="font-size: 20px; font-weight: 700; margin-top: 0;">Hello ${clientName},</h2>
-            <p style="font-size: 16px; line-height: 1.6; color: #475569;">Our collection vehicle has arrived at your residence for the scheduled waste pickup.</p>
-            <div style="background-color: #f8fafc; padding: 24px; border-radius: 16px; border-left: 4px solid #059669; margin: 32px 0;">
-              <p style="margin: 0; font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em;">Collection Address</p>
-              <p style="margin: 8px 0 0 0; font-size: 15px; font-weight: 600; color: #1e293b;">${address}</p>
-            </div>
-            <p style="font-size: 14px; color: #64748b;">Please ensure your waste bins are positioned correctly. Our team will wait for a short window before moving to the next location.</p>
-          </div>
-          <div style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
-            &copy; ${new Date().getFullYear()} SpotlexWorld. All rights reserved.
-          </div>
-        </div>
-      `
-    });
-
-    if (error) {
-      return NextResponse.json({ error }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, data });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-</file>
-
-<file path="src/app/auth/login/page.tsx">
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Mail, Lock, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-
-export default function LoginPage() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (authError) {
-        setError(`Login failed: ${authError.message}`)
-        setLoading(false)
-        return
-      }
-
-      if (data.user) {
-        // Direct Client-Side Routing based on JWT Metadata
-        const role = data.user.user_metadata?.role || 'client'
-        console.log('[Auth] Login successful, routing to:', role)
-        
-        // We use window.location here instead of router.push to force 
-        // a clean state refresh and ensure cookies are picked up
-        window.location.href = `/${role}/dashboard`
-      }
-
-    } catch (err: any) {
-      setError('An unexpected error occurred.')
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-700">Spotless World</h1>
-          <p className="text-gray-500 mt-2">Sign in to your account</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Don't have an account?{' '}
-          <Link href="/auth/register" className="text-green-600 hover:underline font-medium">
-            Register here
-          </Link>
-        </p>
-      </div>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/auth/register/page.tsx">
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Mail, Lock, User, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-
-export default function RegisterPage() {
-  const router = useRouter()
-  const supabase = createClient()
-  
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-  })
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const[success, setSuccess] = useState(false)
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      console.log('[Auth] Attempting client registration for:', formData.email)
-      
-      // 1. Create the Auth User
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            role: 'client'
-          }
-        }
-      })
-
-      if (authError) throw authError;
-
-      if (authData.user) {
-        console.log('[Auth] Auth account created. Creating public profile...')
-        
-        // 2. Explicitly create the Public Profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            full_name: formData.fullName,
-            role: 'client'
-          })
-
-        if (profileError) {
-          console.error('[DB Insert Error]', profileError)
-          throw new Error(`Profile creation failed: ${profileError.message}`)
-        }
-      }
-
-      console.log('[Auth] Complete registration successful!')
-      setSuccess(true)
-      setLoading(false)
-      setTimeout(() => router.push('/dashboard'), 2000)
-
-    } catch (err: any) {
-      console.error('[Registration Error]', err)
-      setError(err.message || 'An unexpected internal error occurred.')
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-700">Join Spotless World</h1>
-          <p className="text-gray-500 mt-2">Create your resident account</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm mb-6 text-center border border-green-200">
-            Registration successful! Redirecting to dashboard...
-          </div>
-        )}
-
-        <form onSubmit={handleRegister} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                required
-                value={formData.fullName}
-                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                placeholder="John Doe"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Already have an account?{' '}
-          <Link href="/auth/login" className="text-green-600 hover:underline font-medium">
-            Sign in
-          </Link>
-        </p>
-      </div>
+      {profile && <ProfileSettings profile={profile} />}
     </div>
   )
 }
@@ -1003,27 +554,22 @@ export default function TeamRegisterPage() {
 }
 </file>
 
-<file path="src/app/client/layout.tsx">
-import LogoutButton from '@/components/LogoutButton'
-import { Leaf } from 'lucide-react'
-import { ReactNode } from 'react'
+<file path="src/app/client/profile/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import ProfileSettings from '@/components/ProfileSettings'
 
-export default function ClientLayout({ children }: { children: ReactNode }) {
+export default async function ClientProfilePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2 text-green-800">
-            <Leaf className="w-5 h-5 fill-green-600" />
-            <h1 className="text-lg font-bold tracking-tight">SpotlexWorld</h1>
-          </div>
-          <LogoutButton />
-        </div>
-      </header>
-      
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full">
-        {children}
-      </main>
+    <div className="space-y-8 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Account Settings</h1>
+        <p className="text-slate-500 font-medium mt-1">Manage your SpotlexWorld profile and security.</p>
+      </div>
+      {profile && <ProfileSettings profile={profile} />}
     </div>
   )
 }
@@ -1048,121 +594,22 @@ export default async function DashboardRouter() {
 }
 </file>
 
-<file path="src/app/driver/dashboard/page.tsx">
+<file path="src/app/driver/profile/page.tsx">
 import { createClient } from '@/lib/supabase/server'
-import DriverMapWrapper from '@/components/driver/DriverMapWrapper'
-import BrandLogo from '@/components/BrandLogo'
-import { Target, CheckCircle2, Clock } from 'lucide-react'
+import ProfileSettings from '@/components/ProfileSettings'
 
-export default async function DriverDashboardPage() {
+export default async function DriverProfilePage() {
   const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
   const { data: { user } } = await supabase.auth.getUser()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user?.id)
-    .single()
-
-  const { data: collections } = await supabase
-    .from('collections')
-    .select(`
-      id,
-      status,
-      properties (
-        id,
-        address_text,
-        location,
-        profiles ( full_name, email, phone )
-      )
-    `)
-    .eq('scheduled_date', today)
-    .eq('driver_id', user?.id)
-
-  const { data: assistants } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .eq('role', 'assistant')
-
-  const total = collections?.length || 0;
-  const collected = collections?.filter(c => c.status === 'collected').length || 0;
-  const pending = total - collected;
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto p-4 md:p-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Driver Terminal</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
-            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Shift Active: SpotlexWorld Operations</p>
-          </div>
-        </div>
-        <BrandLogo showText={false} iconSize={24} />
-      </header>
-
-      {/* Driver Log Stats */}
-      <div className="grid grid-cols-3 gap-4 md:gap-6">
-        <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-          <div className="bg-slate-900 p-3 rounded-xl text-white"><Target size={20} /></div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Scheduled</p>
-            <p className="text-2xl font-black text-slate-900">{total}</p>
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-          <div className="bg-green-100 p-3 rounded-xl text-green-700"><CheckCircle2 size={20} /></div>
-          <div>
-            <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Collected</p>
-            <p className="text-2xl font-black text-slate-900">{collected}</p>
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-          <div className="bg-orange-100 p-3 rounded-xl text-orange-700"><Clock size={20} /></div>
-          <div>
-            <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Pending</p>
-            <p className="text-2xl font-black text-slate-900">{pending}</p>
-          </div>
-        </div>
+    <div className="space-y-8 max-w-5xl mx-auto p-4 md:p-8">
+      <div>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Driver Settings</h1>
+        <p className="text-slate-500 font-medium mt-1">Manage your SpotlexWorld employee profile.</p>
       </div>
-
-      <div className="bg-white p-2 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 relative">
-         <DriverMapWrapper 
-            collections={collections || []} 
-            assistants={assistants ||[]}
-            driverId={user?.id || ''}
-            driverName={profile?.full_name || 'Spotlex Driver'}
-         />
-      </div>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/driver/layout.tsx">
-import LogoutButton from '@/components/LogoutButton'
-import { Truck } from 'lucide-react'
-import { ReactNode } from 'react'
-
-export default function DriverLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-green-700">
-            <Truck className="w-6 h-6" />
-            <h1 className="text-xl font-bold">Driver Terminal</h1>
-          </div>
-          <nav>
-            <LogoutButton />
-          </nav>
-        </div>
-      </header>
-      
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        {children}
-      </main>
+      {profile && <ProfileSettings profile={profile} />}
     </div>
   )
 }
@@ -1194,6 +641,50 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="src/app/profile/actions.ts">
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+
+export async function updatePersonalProfile(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: "Unauthorized." }
+
+  const full_name = formData.get('full_name') as string
+  const phone = formData.get('phone') as string
+
+  // 1. Update Public Profile Table
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ full_name, phone })
+    .eq('id', user.id)
+
+  if (profileError) return { error: "Failed to update profile data." }
+
+  // 2. Update Auth Metadata (So the UserMenu reflects changes instantly)
+  const { error: authError } = await supabase.auth.updateUser({
+    data: { full_name, phone }
+  })
+
+  if (authError) return { error: "Failed to update auth identity." }
+
+  return { success: true }
+}
+
+export async function updateAccountPassword(formData: FormData) {
+  const supabase = await createClient()
+  const new_password = formData.get('new_password') as string
+
+  const { error } = await supabase.auth.updateUser({
+    password: new_password
+  })
+
+  if (error) return { error: error.message }
+  return { success: true }
 }
 </file>
 
@@ -1391,6 +882,74 @@ export default function AdminMapWrapper({ properties, todayPropertyIds }: AdminM
 }
 </file>
 
+<file path="src/components/admin/ClientProfileEditor.tsx">
+'use client'
+
+import { User, Phone, Save, Loader2 } from 'lucide-react'
+import { useTransition } from 'react'
+import { toast } from 'sonner'
+import { updateClientProfile } from '@/app/admin/actions'
+
+export default function ClientProfileEditor({ client }: { client: any }) {
+  const [isPending, startTransition] = useTransition()
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    
+    startTransition(async () => {
+      const result = await updateClientProfile(formData)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success("Profile updated successfully")
+      }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+      <input type="hidden" name="id" value={client.id} />
+      
+      <div className="space-y-4">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
+        <div className="relative group">
+          <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+          <input 
+            name="full_name"
+            defaultValue={client.full_name}
+            required
+            className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Verified Phone</label>
+        <div className="relative group">
+          <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+          <input 
+            name="phone"
+            defaultValue={client.phone || ''}
+            className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
+          />
+        </div>
+      </div>
+
+      <div className="pt-4">
+        <button 
+          type="submit"
+          disabled={isPending}
+          className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-slate-300 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> Commit Changes</>}
+        </button>
+      </div>
+    </form>
+  )
+}
+</file>
+
 <file path="src/components/admin/ScheduleEditor.tsx">
 'use client'
 
@@ -1505,235 +1064,6 @@ export default function BrandLogo({
           Spotlex<span className="text-green-600 font-extrabold">World</span>
         </span>
       )}
-    </div>
-  )
-}
-</file>
-
-<file path="src/components/client/ClientDashboardView.tsx">
-'use client'
-
-import { useEffect, useState, useTransition } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import BrandLogo from '@/components/BrandLogo'
-import { Calendar, MapPin, Truck, Star, Image as ImageIcon, MessageSquare, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { submitClientFeedback } from '@/app/client/actions'
-
-function StarRating({ value, onChange, disabled }: { value: number, onChange?: (val: number) => void, disabled?: boolean }) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          disabled={disabled}
-          onClick={() => onChange && onChange(star)}
-          className={`focus:outline-none ${disabled ? 'cursor-default' : 'hover:scale-110 transition-transform'}`}
-        >
-          <Star className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`} />
-        </button>
-      ))}
-    </div>
-  )
-}
-
-export default function ClientDashboardView({ property, history }: { property: any, history: any[] }) {
-  const supabase = createClient()
-  const [arrivalNotification, setArrivalNotification] = useState<string | null>(null)
-  
-  const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null)
-  const [rating, setRating] = useState(0)
-  const[remark, setRemark] = useState('')
-  
-  // React standard for handling asynchronous server actions smoothly
-  const[isPending, startTransition] = useTransition()
-
-  useEffect(() => {
-    if (!property?.id) return;
-
-    const channel = supabase
-      .channel('collection-updates')
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'collections', 
-        filter: `property_id=eq.${property.id}` 
-      },
-      (payload) => {
-        if (payload.new.status === 'arrived') {
-          setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
-          toast.success("🚛 Truck Arrived!", { 
-            description: "Our team is at your gate.", 
-            duration: 15000 
-          });
-          setTimeout(() => setArrivalNotification(null), 20000)
-        }
-        if (payload.new.status === 'collected') {
-          toast.success("✅ Waste Collected!", { 
-            description: "Thank you for using SpotlexWorld." 
-          });
-          setTimeout(() => window.location.reload(), 2000);
-        }
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [property?.id, supabase])
-
-  const handleFeedbackSubmit = (colId: string) => {
-    if (rating === 0) { 
-      toast.error("Please select a star rating."); 
-      return; 
-    }
-
-    startTransition(async () => {
-      const response = await submitClientFeedback(colId, rating, remark);
-      
-      if (response.error) {
-        toast.error(response.error);
-      } else {
-        toast.success("Feedback submitted. Thank you!");
-        setActiveFeedbackId(null);
-        window.location.reload(); 
-      }
-    });
-  }
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-700 px-4 md:px-0 pb-10">
-      {arrivalNotification && (
-        <div className="fixed top-28 right-6 left-6 md:left-auto md:w-[400px] z-[3000] animate-in slide-in-from-top-10 duration-500">
-          <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border-4 border-green-500 flex items-center gap-6">
-            <div className="bg-green-600 p-3 rounded-2xl animate-bounce">
-              <Truck className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Live Update</p>
-              <p className="text-sm font-bold leading-tight">{arrivalNotification}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <header className="flex justify-between items-center py-6">
-        <BrandLogo />
-        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-200/20 space-y-8">
-          <div className="flex items-center gap-4">
-            <div className="bg-green-100 p-3 rounded-2xl"><MapPin className="w-6 h-6 text-green-700" /></div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pickup Location</h2>
-          </div>
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic font-medium text-slate-600 leading-relaxed">
-            {property.address_text}
-          </div>
-        </div>
-
-        <div className="bg-slate-900 p-8 md:p-10 rounded-[3rem] shadow-2xl shadow-slate-900/40 space-y-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-10"><Calendar className="w-32 h-32" /></div>
-          <h2 className="text-xl font-bold tracking-tight relative z-10">Schedule</h2>
-          <div className="space-y-4 relative z-10">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Collection Day</p>
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
-              <p className="text-2xl font-black italic">
-                {property.collection_day_of_week !== null 
-                  ?['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
-                  : "Pending Assignment"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
-        <div className="p-8 md:p-10 border-b border-slate-50 bg-slate-50/50">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Service History</h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">Review past collections and provide feedback to our team.</p>
-        </div>
-        
-        <div className="p-4 md:p-10 space-y-6">
-          {history?.map((col: any) => (
-            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-black text-slate-900">
-                    {new Date(col.scheduled_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${col.status === 'collected' ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800'}`}>
-                    {col.status.replace('_', ' ')}
-                  </span>
-                </div>
-                {col.outcome_reason && (
-                  <p className="text-sm font-medium text-slate-600 bg-white p-3 rounded-xl border border-slate-200">
-                    <strong className="text-slate-900">Driver Note:</strong> {col.outcome_reason}
-                  </p>
-                )}
-              </div>
-
-              {col.proof_photo_url && (
-                <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-slate-200 hover:border-green-400 transition-colors group">
-                  <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-green-100 transition-colors"><ImageIcon className="w-5 h-5 text-slate-600 group-hover:text-green-700" /></div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proof of Service</p>
-                    <p className="text-sm font-bold text-slate-800">View Photo</p>
-                  </div>
-                </a>
-              )}
-
-              <div className="flex-1 lg:max-w-xs w-full">
-                {col.client_rating ? (
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
-                    <StarRating value={col.client_rating} disabled />
-                    {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}
-                  </div>
-                ) : (
-                  <>
-                    {activeFeedbackId === col.id ? (
-                      <div className="bg-white p-4 rounded-2xl border border-green-200 shadow-xl shadow-green-100 space-y-4 animate-in fade-in">
-                        <StarRating value={rating} onChange={setRating} />
-                        <textarea 
-                          value={remark} 
-                          onChange={(e) => setRemark(e.target.value)} 
-                          placeholder="Add a remark (optional)..." 
-                          className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-600 outline-none resize-none" 
-                        />
-                        <div className="flex gap-2">
-                          <button onClick={() => setActiveFeedbackId(null)} className="flex-1 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
-                          <button 
-                            onClick={() => handleFeedbackSubmit(col.id)} 
-                            disabled={isPending} 
-                            className="flex-1 bg-green-600 text-white py-2 text-xs font-bold rounded-lg flex justify-center items-center gap-2 transition active:scale-95 disabled:opacity-50"
-                          >
-                            {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Submit'}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={() => {setActiveFeedbackId(col.id); setRating(0); setRemark('');}} 
-                        className="w-full bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-600 hover:text-slate-900 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                      >
-                        <MessageSquare className="w-4 h-4" /> Leave Feedback
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-          {(!history || history.length === 0) && (
-            <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No past collection logs found.</p>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
@@ -1870,6 +1200,211 @@ export default function LogoutButton() {
 }
 </file>
 
+<file path="src/components/ProfileSettings.tsx">
+'use client'
+
+import { useState, useTransition } from 'react'
+import { User, Phone, Lock, Save, Loader2, Mail } from 'lucide-react'
+import { toast } from 'sonner'
+import { updatePersonalProfile, updateAccountPassword } from '@/app/profile/actions'
+
+interface ProfileSettingsProps {
+  profile: {
+    full_name: string;
+    phone: string;
+    email: string;
+    role: string;
+  }
+}
+
+export default function ProfileSettings({ profile }: ProfileSettingsProps) {
+  const [isProfilePending, startProfileTransition] = useTransition()
+  const [isPasswordPending, startPasswordTransition] = useTransition()
+
+  const handleProfileUpdate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    
+    startProfileTransition(async () => {
+      const response = await updatePersonalProfile(formData)
+      if (response.error) {
+        toast.error(response.error)
+      } else {
+        toast.success("Profile updated successfully.")
+      }
+    })
+  }
+
+  const handlePasswordUpdate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    
+    startPasswordTransition(async () => {
+      const response = await updateAccountPassword(formData)
+      if (response.error) {
+        toast.error(response.error)
+      } else {
+        toast.success("Password updated successfully.")
+        ;(e.target as HTMLFormElement).reset()
+      }
+    })
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-700">
+      
+      {/* Personal Info Card */}
+      <div className="bg-white p-8 md:p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20">
+        <h2 className="text-2xl font-black text-slate-900 mb-8">Personal Details</h2>
+        <form onSubmit={handleProfileUpdate} className="space-y-6">
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input disabled value={profile.email || ''} className="w-full pl-12 pr-4 py-4 bg-slate-100 border-none rounded-2xl text-slate-500 font-bold outline-none cursor-not-allowed" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input name="full_name" defaultValue={profile.full_name} required className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-green-600 transition-all shadow-inner" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+            <div className="relative group">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input name="phone" defaultValue={profile.phone || ''} required className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-green-600 transition-all shadow-inner" />
+            </div>
+          </div>
+
+          <button disabled={isProfilePending} type="submit" className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4">
+            {isProfilePending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Save Details</>}
+          </button>
+        </form>
+      </div>
+
+      {/* Security Card */}
+      <div className="bg-white p-8 md:p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20">
+        <h2 className="text-2xl font-black text-slate-900 mb-8">Security</h2>
+        <form onSubmit={handlePasswordUpdate} className="space-y-6">
+          <div className="space-y-3">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input name="new_password" type="password" required minLength={6} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold outline-none focus:ring-2 focus:ring-green-600 transition-all shadow-inner" placeholder="••••••••" />
+            </div>
+          </div>
+
+          <button disabled={isPasswordPending} type="submit" className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 transition-all disabled:opacity-50">
+            {isPasswordPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4" /> Update Password</>}
+          </button>
+        </form>
+      </div>
+
+    </div>
+  )
+}
+</file>
+
+<file path="src/components/UserMenu.tsx">
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { User, LogOut, Settings, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
+
+interface UserMenuProps {
+  fullName: string;
+  role: string;
+}
+
+export default function UserMenu({ fullName, role }: UserMenuProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const supabase = createClient()
+
+  const initial = fullName ? fullName.charAt(0).toUpperCase() : 'U'
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  },[])
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      toast.error('Failed to log out.')
+    } else {
+      router.push('/auth/login')
+      router.refresh()
+    }
+  }
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 p-1.5 pr-3 rounded-full bg-slate-50 border border-slate-200 hover:border-green-300 hover:bg-green-50 transition-all focus:outline-none"
+      >
+        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm shadow-md">
+          {initial}
+        </div>
+        <span className="text-sm font-bold text-slate-700 hidden md:block max-w-[100px] truncate">
+          {fullName.split(' ')[0]}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999] animate-in slide-in-from-top-2 fade-in duration-200">
+          <div className="p-4 bg-slate-50 border-b border-slate-100">
+            <p className="text-sm font-black text-slate-900 truncate">{fullName}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{role} Account</p>
+          </div>
+          <div className="p-2 space-y-1">
+            <Link 
+              href={`/${role}/profile`}
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+              <User className="w-4 h-4" /> My Profile
+            </Link>
+            <Link 
+              href={`/${role}/profile`}
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+              <Settings className="w-4 h-4" /> Account Settings
+            </Link>
+          </div>
+          <div className="p-2 border-t border-slate-100">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full p-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4" /> Secure Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+</file>
+
 <file path="src/lib/resend.ts">
 import { Resend } from 'resend';
 
@@ -1915,67 +1450,6 @@ export async function createClient() {
       },
     }
   )
-}
-</file>
-
-<file path="src/proxy.ts">
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
-
-export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) { return request.cookies.get(name)?.value },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({ request: { headers: request.headers } })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({ request: { headers: request.headers } })
-          response.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
-
-  // Use a try-catch to prevent UND_ERR_CONNECT_TIMEOUT from crashing the whole app
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
-    const isProtectedRoute = 
-      request.nextUrl.pathname.startsWith('/client') || 
-      request.nextUrl.pathname.startsWith('/driver') || 
-      request.nextUrl.pathname.startsWith('/admin')
-
-    if (!user && isProtectedRoute) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
-    }
-
-    if (user && isAuthRoute) {
-      const role = user.user_metadata?.role || 'client'
-      return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
-    }
-  } catch (e) {
-    // If Supabase times out, we allow the request to continue rather than hanging.
-    // The individual pages will handle the missing session.
-    console.error('[Proxy] Supabase connection timeout, skipping check.')
-  }
-
-  return response
-}
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
 </file>
 
@@ -2051,6 +1525,157 @@ export const config = {
     "tailwindcss": "^4",
     "typescript": "^5"
   }
+}
+</file>
+
+<file path="src/app/admin/layout.tsx">
+import { createClient } from '@/lib/supabase/server'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
+
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
+        </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto py-10 w-full animate-in fade-in duration-500">
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/auth/login/page.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) {
+        setError(`Login failed: ${authError.message}`)
+        setLoading(false)
+        return
+      }
+
+      if (data.user) {
+        // Direct Client-Side Routing based on JWT Metadata
+        const role = data.user.user_metadata?.role || 'client'
+        console.log('[Auth] Login successful, routing to:', role)
+        
+        // We use window.location here instead of router.push to force 
+        // a clean state refresh and ensure cookies are picked up
+        window.location.href = `/${role}/dashboard`
+      }
+
+    } catch (err: any) {
+      setError('An unexpected error occurred.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-green-700">SpotlexWorld</h1>
+          <p className="text-gray-500 mt-2">Sign in to your account</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Don't have an account?{' '}
+          <Link href="/auth/register" className="text-green-600 hover:underline font-medium">
+            Register here
+          </Link>
+        </p>
+      </div>
+    </div>
+  )
 }
 </file>
 
@@ -2166,6 +1791,76 @@ export default async function ClientDashboardPage() {
 }
 </file>
 
+<file path="src/app/client/layout.tsx">
+import { createClient } from '@/lib/supabase/server'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
+
+export default async function ClientLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
+        </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto py-10 w-full">
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/driver/layout.tsx">
+import { createClient } from '@/lib/supabase/server'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
+
+export default async function DriverLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
+        </div>
+      </header>
+      
+      <main className="flex-1 w-full animate-in fade-in duration-500">
+        {children}
+      </main>
+    </div>
+  )
+}
+</file>
+
 <file path="src/app/layout.tsx">
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
@@ -2196,6 +1891,1007 @@ export default function RootLayout({
 }
 </file>
 
+<file path="src/components/client/ClientDashboardView.tsx">
+'use client'
+
+import { useEffect, useState, useTransition } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import BrandLogo from '@/components/BrandLogo'
+import { Calendar, MapPin, Truck, Star, Image as ImageIcon, MessageSquare, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { submitClientFeedback } from '@/app/client/actions'
+
+function StarRating({ value, onChange, disabled }: { value: number, onChange?: (val: number) => void, disabled?: boolean }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange && onChange(star)}
+          className={`focus:outline-none ${disabled ? 'cursor-default' : 'hover:scale-110 transition-transform'}`}
+        >
+          <Star className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export default function ClientDashboardView({ property, history }: { property: any, history: any[] }) {
+  const supabase = createClient()
+  const [arrivalNotification, setArrivalNotification] = useState<string | null>(null)
+  
+  const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null)
+  const [rating, setRating] = useState(0)
+  const [remark, setRemark] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (!property?.id) return;
+
+    const channel = supabase
+      .channel('collection-updates')
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'collections', 
+        filter: `property_id=eq.${property.id}` 
+      },
+      (payload) => {
+        if (payload.new.status === 'arrived') {
+          setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
+          toast.success("🚛 Truck Arrived!", { description: "Our team is at your gate.", duration: 15000 });
+          setTimeout(() => setArrivalNotification(null), 20000)
+        }
+        if (payload.new.status === 'collected') {
+          toast.success("✅ Waste Collected!", { description: "Thank you for using SpotlexWorld." });
+          setTimeout(() => window.location.reload(), 2000);
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [property?.id, supabase])
+
+  const handleFeedbackSubmit = (colId: string) => {
+    if (rating === 0) { 
+      toast.error("Please select a star rating."); 
+      return; 
+    }
+
+    startTransition(async () => {
+      const response = await submitClientFeedback(colId, rating, remark);
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Feedback submitted. Thank you!");
+        setActiveFeedbackId(null);
+        window.location.reload(); 
+      }
+    });
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-700 px-4 md:px-0 pb-10">
+      {arrivalNotification && (
+        <div className="fixed top-28 right-6 left-6 md:left-auto md:w-[400px] z-[3000] animate-in slide-in-from-top-10 duration-500">
+          <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border-4 border-green-500 flex items-center gap-6">
+            <div className="bg-green-600 p-3 rounded-2xl animate-bounce">
+              <Truck className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Live Update</p>
+              <p className="text-sm font-bold leading-tight">{arrivalNotification}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <header className="flex justify-between items-center py-6">
+        <BrandLogo />
+        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-200/20 space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="bg-green-100 p-3 rounded-2xl"><MapPin className="w-6 h-6 text-green-700" /></div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pickup Location</h2>
+          </div>
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic font-medium text-slate-600 leading-relaxed">
+            {property.address_text}
+          </div>
+        </div>
+
+        <div className="bg-slate-900 p-8 md:p-10 rounded-[3rem] shadow-2xl shadow-slate-900/40 space-y-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-10"><Calendar className="w-32 h-32" /></div>
+          <h2 className="text-xl font-bold tracking-tight relative z-10">Schedule</h2>
+          <div className="space-y-4 relative z-10">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Collection Day</p>
+            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+              <p className="text-2xl font-black italic">
+                {property.collection_day_of_week !== null 
+                  ?['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
+                  : "Pending Assignment"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
+        <div className="p-8 md:p-10 border-b border-slate-50 bg-slate-50/50">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Service History</h2>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Review past collections and provide feedback to our team.</p>
+        </div>
+        
+        <div className="p-4 md:p-10 space-y-6">
+          {history?.map((col: any) => (
+            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between transition-colors hover:border-green-200">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-black text-slate-900">
+                    {new Date(col.scheduled_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${col.status === 'collected' ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800'}`}>
+                    {col.status.replace('_', ' ')}
+                  </span>
+                </div>
+                {col.outcome_reason && (
+                  <p className="text-sm font-medium text-slate-600 bg-white p-3 rounded-xl border border-slate-200">
+                    <strong className="text-slate-900">Driver Note:</strong> {col.outcome_reason}
+                  </p>
+                )}
+              </div>
+
+              {col.proof_photo_url && (
+                <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-slate-200 hover:border-green-400 transition-colors group">
+                  <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-green-100 transition-colors"><ImageIcon className="w-5 h-5 text-slate-600 group-hover:text-green-700" /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proof of Service</p>
+                    <p className="text-sm font-bold text-slate-800">View Photo</p>
+                  </div>
+                </a>
+              )}
+
+              <div className="flex-1 lg:max-w-xs w-full">
+                {col.client_rating ? (
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
+                    <StarRating value={col.client_rating} disabled />
+                    {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}
+                  </div>
+                ) : (
+                  <>
+                    {activeFeedbackId === col.id ? (
+                      <div className="bg-white p-4 rounded-2xl border border-green-200 shadow-xl shadow-green-100 space-y-4 animate-in fade-in">
+                        <StarRating value={rating} onChange={setRating} />
+                        <textarea 
+                          value={remark} 
+                          onChange={(e) => setRemark(e.target.value)} 
+                          placeholder="Add a remark (optional)..." 
+                          className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-600 outline-none resize-none" 
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={() => setActiveFeedbackId(null)} className="flex-1 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                          <button 
+                            onClick={() => handleFeedbackSubmit(col.id)} 
+                            disabled={isPending} 
+                            className="flex-1 bg-green-600 text-white py-2 text-xs font-bold rounded-lg flex justify-center items-center gap-2 transition active:scale-95 disabled:opacity-50"
+                          >
+                            {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Submit'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => {setActiveFeedbackId(col.id); setRating(0); setRemark('');}} 
+                        className="w-full bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-600 hover:text-slate-900 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                      >
+                        <MessageSquare className="w-4 h-4" /> Leave Feedback
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+          {(!history || history.length === 0) && (
+            <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No past collection logs found.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/proxy.ts">
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return request.cookies.get(name)?.value },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
+  const isProtectedRoute = 
+    request.nextUrl.pathname.startsWith('/client') || 
+    request.nextUrl.pathname.startsWith('/driver') || 
+    request.nextUrl.pathname.startsWith('/admin')
+
+  try {
+    // Attempt to verify the session
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    // If no user and trying to access a secure area, kick to login
+    if (!user && isProtectedRoute) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
+
+    // If user is logged in and trying to view the login/register page, send them to their dashboard
+    if (user && isAuthRoute) {
+      const role = user.user_metadata?.role || 'client'
+      return NextResponse.redirect(new URL(`/${role}/dashboard`, request.url))
+    }
+
+  } catch (e) {
+    // ENTERPRISE FIX: If a DNS/Network error (EAI_AGAIN) occurs, log it and FAIL OPEN.
+    // Do not crash the router. The target page will handle the offline state.
+    console.error('[Proxy] Network timeout resolving Supabase. Failsafe activated.', e)
+  }
+
+  return response
+}
+
+export const config = {
+  matcher:['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+}
+</file>
+
+<file path="src/app/admin/actions.ts">
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+export async function updatePropertyLocation(id: string, lat: number, lon: number, manualAddress?: string) {
+  const supabase = await createClient()
+  let finalAddress = manualAddress;
+  
+  if (!finalAddress) {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, {
+      headers: { 'User-Agent': 'SpotlexWorld/1.0' }
+    })
+    const data = await res.json()
+    finalAddress = data.display_name || 'Updated by Admin'
+  }
+  
+  const { data, error } = await supabase
+    .from('properties')
+    .update({
+      location: `POINT(${lon} ${lat})`,
+      address_text: finalAddress
+    })
+    .eq('id', id)
+    .select() // Forces Supabase to return the updated row
+
+  if (error) throw new Error("Failed to update location in database.")
+  if (!data || data.length === 0) throw new Error("Update blocked by Database Security (RLS). Please apply the Admin SQL patch.")
+  
+  revalidatePath('/admin/dashboard')
+}
+
+export async function updateClientProfile(formData: FormData) {
+  const supabase = await createClient()
+  const id = formData.get('id') as string
+  const full_name = formData.get('full_name') as string
+  const phone = formData.get('phone') as string
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ full_name, phone })
+    .eq('id', id)
+    .select()
+
+  if (error) return { error: "Database error occurred." }
+  if (!data || data.length === 0) return { error: "Update blocked by Database Security (RLS). Please apply the Admin SQL patch." }
+  
+  revalidatePath('/admin/clients')
+  revalidatePath(`/admin/clients/${id}`)
+  return { success: true }
+}
+
+export async function updatePropertySchedule(propertyId: string, clientId: string, dayOfWeek: number) {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase
+    .from('properties')
+    .update({ collection_day_of_week: dayOfWeek })
+    .eq('id', propertyId)
+    .select()
+
+  if (error) return { error: "Failed to update schedule in database." }
+  if (!data || data.length === 0) return { error: "Action blocked by Database Security (RLS). Please apply the Admin SQL patch." }
+  
+  revalidatePath(`/admin/clients/${clientId}`)
+  return { success: true }
+}
+</file>
+
+<file path="src/app/admin/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight, Star, Image as ImageIcon, MessageSquare } from 'lucide-react'
+import AdminMapWrapper from '@/components/admin/AdminMapWrapper'
+import Link from 'next/link'
+import 'leaflet/dist/leaflet.css'
+
+export default async function AdminDashboardPage() {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
+  const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
+  
+  // Added client_remark to the select query for complete Quality Control
+  const { data: activeCollections } = await supabase
+    .from('collections')
+    .select(`
+      id, 
+      status, 
+      property_id,
+      outcome_reason,
+      proof_photo_url,
+      client_rating,
+      client_remark,
+      assistant_ids,
+      driver:profiles!collections_driver_id_fkey(full_name)
+    `)
+    .eq('scheduled_date', today)
+
+  const todayPropertyIds = activeCollections?.map(col => col.property_id) ||[]
+
+  const { data: properties } = await supabase
+    .from('properties')
+    .select('id, address_text, location, client_id, profiles(full_name)')
+    .not('location', 'is', null)
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
+          <p className="text-slate-500 font-medium mt-1">Operational command and logistics for SpotlexWorld.</p>
+        </div>
+        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200">
+          {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <Link href="/admin/clients">
+          <div className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center gap-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-green-200 cursor-pointer group">
+            <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-lg transition-colors group-hover:bg-green-600">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">
+                Residents <ArrowUpRight className="w-3.5 h-3.5 text-green-600 opacity-0 group-hover:opacity-100 transition-all" />
+              </p>
+              <p className="text-3xl font-black text-slate-900 tracking-tight">{totalClients || 0}</p>
+            </div>
+          </div>
+        </Link>
+        <StatCard title="Today&apos;s Target" value={stats?.total_scheduled || 0} icon={<ClipboardList className="w-6 h-6" />} color="bg-slate-100 text-slate-900" />
+        <StatCard title="Completed" value={stats?.total_fulfilled || 0} icon={<CheckCircle2 className="w-6 h-6" />} color="bg-green-100 text-green-700" />
+        <StatCard title="Active Shifts" value={stats?.active_drivers || 0} icon={<Truck className="w-6 h-6" />} color="bg-orange-100 text-orange-700" />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        <div className="xl:col-span-2 bg-white p-2 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 overflow-hidden relative group">
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest">Global Asset Map</h2>
+            </div>
+          </div>
+          <div className="h-[500px] md:h-[650px] w-full rounded-[2.5rem] overflow-hidden border border-slate-50">
+             <AdminMapWrapper properties={properties ||[]} todayPropertyIds={todayPropertyIds} />
+          </div>
+        </div>
+
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
+          <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-10 flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-600 rounded-full"></div> Collection Monitor
+          </h2>
+          <div className="space-y-8 overflow-y-auto max-h-[550px] pr-4 custom-scrollbar">
+            {activeCollections?.map((col) => (
+              <div key={col.id} className="relative pl-6 border-l-2 border-slate-100 hover:border-green-500 transition-colors py-1 group">
+                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${col.status === 'collected' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
+                <div className="flex justify-between items-center mb-1">
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SHIFT-LOG</p>
+                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
+                     col.status === 'collected' ? 'bg-green-600 text-white' : 
+                     col.status === 'no_answer' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-500'
+                   }`}>
+                     {col.status.replace('_', ' ')}
+                   </span>
+                </div>
+                <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
+                <p className="text-[10px] font-medium text-slate-400">Crew Size: 1 Driver + {col.assistant_ids?.length || 0} Assistant(s)</p>
+
+                {/* Quality Control Audit Info */}
+                {(col.outcome_reason || col.proof_photo_url || col.client_rating) && (
+                  <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                    {col.outcome_reason && (
+                      <p className="text-[10px] font-medium text-slate-600 bg-orange-50 p-2 rounded-lg border border-orange-100">
+                        <strong className="text-orange-800">Note:</strong> {col.outcome_reason}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {col.proof_photo_url && (
+                        <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 hover:text-green-800 bg-green-50 px-2 py-1 rounded-md transition-colors">
+                          <ImageIcon className="w-3 h-3" /> Proof Photo
+                        </a>
+                      )}
+                      {col.client_rating && (
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md">
+                          <Star className="w-3 h-3 fill-yellow-500" /> {col.client_rating}/5
+                        </div>
+                      )}
+                    </div>
+                    {col.client_remark && (
+                      <p className="text-[10px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-start gap-1">
+                        <MessageSquare className="w-3 h-3 text-slate-400 mt-0.5 flex-shrink-0" />
+                        <span className="italic">"{col.client_remark}"</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            {activeCollections?.length === 0 && (
+              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Active Logs</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ title, value, icon, color }: any) {
+  return (
+    <div className="bg-white p-7 rounded-[2.5rem] border border-slate-50 shadow-xl shadow-slate-200/10 flex items-center gap-6">
+      <div className={`${color} p-4 rounded-2xl shadow-sm`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
+        <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/api/notify-arrival/route.ts">
+import { resend } from '@/lib/resend';
+import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+
+export async function POST(req: Request) {
+  try {
+    const { collectionId } = await req.json();
+
+    if (!collectionId) {
+      return NextResponse.json({ error: 'Collection ID is required' }, { status: 400 });
+    }
+
+    const supabase = await createClient();
+
+    // Securely fetch the exact client data using the collection ID
+    const { data: collection, error: fetchError } = await supabase
+      .from('collections')
+      .select(`
+        properties (
+          address_text,
+          profiles ( full_name, email )
+        )
+      `)
+      .eq('id', collectionId)
+      .single();
+
+    if (fetchError || !collection) {
+      throw new Error('Failed to retrieve client routing data.');
+    }
+
+    const clientName = (collection.properties as any).profiles.full_name;
+    const clientEmail = (collection.properties as any).profiles.email;
+    const address = (collection.properties as any).address_text;
+
+    // Resend Sandbox check for development vs production
+    const targetEmail = process.env.NODE_ENV === 'production' && process.env.RESEND_DOMAIN_VERIFIED === 'true' 
+      ? clientEmail 
+      : (process.env.TEST_DELIVERY_EMAIL || 'delivered@resend.dev');
+
+    const { data, error } = await resend.emails.send({
+      from: 'SpotlexWorld <onboarding@resend.dev>', // Update upon domain verification
+      to:[targetEmail],
+      subject: `🚛 SpotlexWorld: We are at your gate, ${clientName.split(' ')[0]}!`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; background-color: #ffffff;">
+          <div style="background-color: #059669; padding: 40px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">SpotlexWorld</h1>
+          </div>
+          <div style="padding: 40px; color: #0f172a;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-top: 0;">Hello ${clientName},</h2>
+            <p style="font-size: 16px; line-height: 1.6; color: #475569;">Our collection vehicle has arrived at your residence for the scheduled waste pickup.</p>
+            <div style="background-color: #f8fafc; padding: 24px; border-radius: 16px; border-left: 4px solid #059669; margin: 32px 0;">
+              <p style="margin: 0; font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em;">Collection Address</p>
+              <p style="margin: 8px 0 0 0; font-size: 15px; font-weight: 600; color: #1e293b;">${address}</p>
+            </div>
+            <p style="font-size: 14px; color: #64748b;">Please ensure your waste bins are positioned correctly. Our team will wait for a short window before moving to the next location.</p>
+          </div>
+        </div>
+      `
+    });
+
+    if (error) return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json({ success: true, data });
+
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+</file>
+
+<file path="src/app/auth/register/page.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, User, Phone, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  
+  const[formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+  })
+  const [error, setError] = useState<string | null>(null)
+  const[loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      // 1. Create the Auth User & Pass metadata (including the new phone field)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            phone: formData.phone,
+            role: 'client'
+          }
+        }
+      })
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // 2. Explicitly create the Public Profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            full_name: formData.fullName,
+            phone: formData.phone,
+            role: 'client'
+          })
+
+        if (profileError) throw new Error(`Profile creation failed: ${profileError.message}`)
+      }
+
+      setSuccess(true)
+      setTimeout(() => router.push('/dashboard'), 2000)
+
+    } catch (err: any) {
+      setError(err.message || 'An unexpected internal error occurred.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-10 border border-slate-100">
+        <div className="text-center mb-10 flex flex-col items-center">
+          <BrandLogo textSize="text-2xl" className="mb-4" />
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Create Account</h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Join the premium waste management platform.</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-medium mb-6 border border-red-100">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 text-green-700 p-4 rounded-2xl text-sm font-bold mb-6 text-center border border-green-200">
+            Registration successful! Redirecting to setup...
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} className="space-y-5">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="text" required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" placeholder="John Doe" />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+            <div className="relative group">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" placeholder="0801 234 5678" />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" placeholder="you@example.com" />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Secure Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="password" required minLength={6} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" placeholder="••••••••" />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <button type="submit" disabled={loading || success} className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl uppercase text-sm tracking-[0.2em] flex items-center justify-center transition-all disabled:opacity-50 shadow-xl shadow-slate-200">
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Join SpotlexWorld'}
+            </button>
+          </div>
+        </form>
+
+        <p className="text-center text-xs font-bold text-slate-500 mt-8">
+          Already have an account?{' '}
+          <Link href="/auth/login" className="text-green-600 hover:text-green-700 transition-colors">Sign in</Link>
+        </p>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/driver/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import DriverMapWrapper from '@/components/driver/DriverMapWrapper'
+import BrandLogo from '@/components/BrandLogo'
+import { Target, CheckCircle2, Clock, WifiOff, RefreshCcw } from 'lucide-react'
+import Link from 'next/link'
+
+export default async function DriverDashboardPage() {
+  const supabase = await createClient()
+  const todayDate = new Date()
+  const todayStr = todayDate.toISOString().split('T')[0]
+  const dayOfWeek = todayDate.getDay() 
+
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) throw new Error("Authentication failed")
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single()
+
+    const { data: scheduledProps } = await supabase
+      .from('properties')
+      .select('id')
+      .eq('collection_day_of_week', dayOfWeek)
+
+    if (scheduledProps && scheduledProps.length > 0) {
+      const { data: existingCols } = await supabase
+        .from('collections')
+        .select('property_id')
+        .eq('scheduled_date', todayStr)
+
+      const existingIds = existingCols?.map(c => c.property_id) ||[]
+      const missingProps = scheduledProps.filter(p => !existingIds.includes(p.id))
+
+      if (missingProps.length > 0) {
+        const inserts = missingProps.map(p => ({
+          property_id: p.id,
+          scheduled_date: todayStr,
+          status: 'pending'
+        }))
+        await supabase.from('collections').insert(inserts)
+      }
+    }
+
+    // FIXED: Removed 'email' from the profiles relation select query
+    const { data: collections, error: colError } = await supabase
+      .from('collections')
+      .select(`
+        id,
+        status,
+        driver_id,
+        properties (
+          id,
+          address_text,
+          location,
+          profiles ( full_name, phone )
+        )
+      `)
+      .eq('scheduled_date', todayStr)
+      .or(`driver_id.is.null,driver_id.eq.${user.id}`)
+
+    if (colError) throw colError;
+
+    const { data: assistants } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('role', 'assistant')
+
+    const total = collections?.length || 0;
+    const collected = collections?.filter(c => c.status === 'collected').length || 0;
+    const pending = total - collected;
+
+    return (
+      <div className="space-y-8 animate-in fade-in duration-700 max-w-7xl mx-auto p-4 md:p-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Driver Terminal</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+              <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Shift Active: SpotlexWorld Operations</p>
+            </div>
+          </div>
+          <BrandLogo showText={false} iconSize={24} />
+        </header>
+
+        <div className="grid grid-cols-3 gap-4 md:gap-6">
+          <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+            <div className="bg-slate-900 p-3 rounded-xl text-white"><Target size={20} /></div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Scheduled</p>
+              <p className="text-2xl font-black text-slate-900">{total}</p>
+            </div>
+          </div>
+          <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+            <div className="bg-green-100 p-3 rounded-xl text-green-700"><CheckCircle2 size={20} /></div>
+            <div>
+              <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Collected</p>
+              <p className="text-2xl font-black text-slate-900">{collected}</p>
+            </div>
+          </div>
+          <div className="bg-white p-5 rounded-[2rem] shadow-xl shadow-slate-200/20 border border-slate-50 flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
+            <div className="bg-orange-100 p-3 rounded-xl text-orange-700"><Clock size={20} /></div>
+            <div>
+              <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">Pending</p>
+              <p className="text-2xl font-black text-slate-900">{pending}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-2 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-slate-200/40 relative">
+           <DriverMapWrapper 
+              collections={collections || []} 
+              assistants={assistants ||[]}
+              driverId={user?.id || ''}
+              driverName={profile?.full_name || 'Spotlex Driver'}
+           />
+        </div>
+      </div>
+    )
+
+  } catch (error) {
+    console.error("[Driver Dashboard] Data Fetch Error:", error);
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+        <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-100 max-w-lg w-full">
+          <div className="bg-orange-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+            <WifiOff className="w-10 h-10 text-orange-600" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 mb-2">Connection Lost</h2>
+          <p className="text-slate-500 font-medium mb-8">
+            The server cannot reach the SpotlexWorld database. This is usually caused by a temporary network drop or DNS timeout.
+          </p>
+          <Link href="/driver/dashboard" className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+            <RefreshCcw className="w-4 h-4" /> Retry Connection
+          </Link>
+        </div>
+      </div>
+    )
+  }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { Leaf, Map, Truck, BellRing, ArrowRight } from 'lucide-react'
+
+export default async function LandingPage() {
+  const supabase = await createClient()
+  // Check if a user is currently logged in
+  const { data: { user } } = await supabase.auth.getUser()
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col font-sans">
+      {/* Navigation */}
+      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-green-700">
+            <Leaf className="w-8 h-8" />
+            <span className="text-2xl font-black tracking-tight">SpotlexWorld</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <Link 
+                href="/dashboard" 
+                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200 flex items-center gap-2"
+              >
+                Go to Dashboard <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login" className="text-gray-600 hover:text-green-700 font-semibold px-4 py-2 transition">
+                  Log In
+                </Link>
+                <Link 
+                  href="/auth/register" 
+                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-block bg-green-50 border border-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-6">
+              SMART WASTE MANAGEMENT
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-tight mb-8">
+              A Cleaner City, <br className="hidden md:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-400">
+                Delivered Smartly.
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Spotless World connects residents with waste collection teams using real-time GPS routing, instant notifications, and proof of collection to ensure your neighborhood stays pristine.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {user ? (
+                <Link 
+                  href="/dashboard" 
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200 flex items-center justify-center gap-2"
+                >
+                  Enter Dashboard <ArrowRight className="w-5 h-5" />
+                </Link>
+              ) : (
+                <>
+                  <Link 
+                    href="/auth/register" 
+                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200"
+                  >
+                    Register as Resident
+                  </Link>
+                  <Link 
+                    href="/auth/login" 
+                    className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg transition"
+                  >
+                    Team Login
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 md:mt-32">
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="bg-blue-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <Map className="w-7 h-7 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Precision Geocoding</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Pinpoint your exact address on our interactive map. Our drivers use advanced spatial routing to find your home without confusion.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="bg-green-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <Truck className="w-7 h-7 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Optimized Routing</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Our administrative engine calculates the fastest Traveling Salesperson route, minimizing fuel and maximizing collection efficiency.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+              <div className="bg-orange-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
+                <BellRing className="w-7 h-7 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Real-time Alerts</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Receive instant emails and dashboard notifications the moment our trucks arrive at your gate. No more waiting outside.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      {/* Footer */}
+      <footer className="border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
+        <p>&copy; {new Date().getFullYear()} SpotlexWorld. All rights reserved.</p>
+      </footer>
+    </div>
+  )
+}
+</file>
+
 <file path="src/components/admin/GlobalAdminMap.tsx">
 'use client'
 
@@ -2218,7 +2914,7 @@ const DefaultIcon = L.icon({
   iconUrl, 
   shadowUrl, 
   iconSize: [25, 41], 
-  iconAnchor: [12, 41] 
+  iconAnchor:[12, 41] 
 })
 
 const EditIcon = L.icon({ 
@@ -2229,7 +2925,6 @@ const EditIcon = L.icon({
   className: 'hue-rotate-[140deg] saturate-200 brightness-110' 
 })
 
-// Custom animated icon for live trucks on the Admin map
 const LiveTruckIcon = L.divIcon({
   html: `<div style="background-color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; width: 32px; height: 32px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.5);"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11h12Z"/><path d="M14 8h4.38a2 2 0 0 1 1.6.82l2.3 3.44A2 2 0 0 1 22.5 13.5V17h-2.5"/><path d="M8 17.5A2.5 2.5 0 1 1 5.5 15 2.5 2.5 0 0 1 8 17.5Z"/><path d="M21 17.5A2.5 2.5 0 1 1 18.5 15 2.5 2.5 0 0 1 21 17.5Z"/></svg></div>`,
   className: 'live-truck-marker animate-bounce',
@@ -2237,12 +2932,11 @@ const LiveTruckIcon = L.divIcon({
   iconAnchor:[16, 16]
 });
 
-// Robust PostGIS Parser
 function parsePostGISPoint(locationStr: string | null): [number, number] {
   if (!locationStr || !locationStr.startsWith('POINT(')) return[6.5244, 3.3792];
   const cleanStr = locationStr.slice(6, -1);
   const parts = cleanStr.split(' ');
-  if (parts.length !== 2) return [6.5244, 3.3792];
+  if (parts.length !== 2) return[6.5244, 3.3792];
   return[parseFloat(parts[1]), parseFloat(parts[0])];
 }
 
@@ -2251,11 +2945,11 @@ function MapController({ targetBounds, targetPos, isFullscreen }: { targetBounds
   useEffect(() => {
     setTimeout(() => { map.invalidateSize() }, 100);
     if (targetBounds) {
-      map.flyToBounds(targetBounds, { padding: [50, 50], duration: 1.5 });
+      map.flyToBounds(targetBounds, { padding:[50, 50], duration: 1.5 });
     } else if (targetPos) {
       map.flyTo(targetPos, 18, { duration: 1.5 });
     }
-  }, [targetBounds, targetPos, isFullscreen, map]);
+  },[targetBounds, targetPos, isFullscreen, map]);
   return null;
 }
 
@@ -2269,20 +2963,18 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
   const editId = searchParams.get('editId');
   const supabase = createClient();
 
-  const [viewMode, setViewMode] = useState<'today' | 'all'>('today');
+  const[viewMode, setViewMode] = useState<'today' | 'all'>('today');
   const[editingItem, setEditingItem] = useState<any | null>(null);
   const [editAddress, setEditAddress] = useState('');
-  const [tempPos, setTempPos] = useState<[number, number] | null>(null);
+  const[tempPos, setTempPos] = useState<[number, number] | null>(null);
   const [mapTarget, setMapTarget] = useState<{bounds?: L.LatLngBounds, pos?: [number, number]}>({});
-  const [loading, setLoading] = useState(false);
+  const[loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // State for live moving trucks
-  const [activeTrucks, setActiveTrucks] = useState<Record<string, { lat: number, lng: number, name: string }>>({});
+  const[activeTrucks, setActiveTrucks] = useState<Record<string, { lat: number, lng: number, name: string }>>({});
 
   useEffect(() => {
-    // Listen to Truck Broadcasts
     const channel = supabase.channel('truck-tracking')
       .on('broadcast', { event: 'location_update' }, (payload) => {
         const { driverId, driverName, lat, lng } = payload.payload;
@@ -2294,7 +2986,7 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [supabase]);
+  },[supabase]);
 
   useEffect(() => {
     if (editId) {
@@ -2366,13 +3058,17 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
         <div className="bg-white/90 backdrop-blur-xl border border-slate-200 p-1.5 rounded-2xl shadow-2xl flex items-center gap-1">
           <button 
             onClick={() => setViewMode('today')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${viewMode === 'today' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              viewMode === 'today' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'
+            }`}
           >
-            <Filter className="w-3.5 h-3.5" /> TODAY'S ROUTE
+            <Filter className="w-3.5 h-3.5" /> TODAY&apos;S ROUTE
           </button>
           <button 
             onClick={() => setViewMode('all')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${viewMode === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              viewMode === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'text-slate-400 hover:bg-slate-50'
+            }`}
           >
             <Layers className="w-3.5 h-3.5" /> ALL ASSETS
           </button>
@@ -2422,11 +3118,10 @@ function MapInternal({ properties, todayPropertyIds }: GlobalAdminMapProps) {
       <MapContainer center={[9.0820, 8.6753]} zoom={6} zoomControl={false} style={{ height: '100%', width: '100%', background: '#f8fafc' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         
-        {/* Render Live Vehicles */}
         {Object.values(activeTrucks).map((truck, idx) => (
           <Marker key={`truck-${idx}`} position={[truck.lat, truck.lng]} icon={LiveTruckIcon} zIndexOffset={1000}>
             <Tooltip direction="top" offset={[0, -20]} className="premium-tooltip-admin" permanent>
-               <span className="font-bold flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div> {truck.name}'s Truck</span>
+               <span className="font-bold flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div> {truck.name}&apos;s Truck</span>
             </Tooltip>
           </Marker>
         ))}
@@ -2497,10 +3192,8 @@ interface DriverMapWrapperProps {
 }
 
 export default function DriverMapWrapper({ collections, assistants, driverId, driverName }: DriverMapWrapperProps) {
-  const[isShiftStarted, setIsShiftStarted] = useState(false)
+  const [isShiftStarted, setIsShiftStarted] = useState(false)
   const [selectedAssistants, setSelectedAssistants] = useState<string[]>([])
-  
-  // React 19 Standard for async UI transitions
   const [isPending, startTransition] = useTransition()
 
   const RouteMap = useMemo(() => dynamic(() => import('./RouteMap'), { 
@@ -2544,7 +3237,7 @@ export default function DriverMapWrapper({ collections, assistants, driverId, dr
           </div>
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Shift Initialization</h2>
-            <p className="text-slate-500 text-sm mt-2">Select your crew members for today's route. You can select multiple assistants or proceed alone.</p>
+            <p className="text-slate-500 text-sm mt-2">Select your crew members for today&apos;s route. You can select multiple assistants or proceed alone.</p>
           </div>
 
           <div className="space-y-4 text-left">
@@ -2586,6 +3279,140 @@ export default function DriverMapWrapper({ collections, assistants, driverId, dr
 }
 </file>
 
+<file path="src/app/admin/clients/[id]/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { ArrowLeft, ShieldCheck, CalendarDays } from 'lucide-react'
+import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
+import ScheduleEditor from '@/components/admin/ScheduleEditor'
+import ClientProfileEditor from '@/components/admin/ClientProfileEditor'
+
+export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient()
+  
+  const { data: client } = await supabase
+    .from('profiles')
+    .select('*, properties(*)')
+    .eq('id', id)
+    .single()
+
+  if (!client) {
+    return (
+      <div className="p-20 text-center">
+        <h2 className="text-2xl font-black text-slate-900">Account not found.</h2>
+        <Link href="/admin/clients" className="text-green-600 font-bold underline mt-4 inline-block">Return to Registry</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 p-4 md:p-0">
+      <div className="flex items-center gap-6">
+        <Link href="/admin/clients" className="p-3 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-900 hover:text-white transition-all text-slate-600">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <BrandLogo />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Profile Modification Section */}
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 relative overflow-hidden h-fit">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+             <ShieldCheck className="w-32 h-32 text-slate-900" />
+          </div>
+          
+          <h1 className="text-2xl font-black text-slate-900 mb-2">Modify Profile</h1>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">System ID: {client.id.split('-')[0]}</p>
+          
+          <ClientProfileEditor client={client} />
+        </div>
+
+        {/* Collection Scheduling Section */}
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 h-fit">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="bg-green-100 p-3 rounded-2xl">
+              <CalendarDays className="w-6 h-6 text-green-700" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deployment Schedule</h1>
+          </div>
+
+          <div className="space-y-6">
+            {(client.properties as any[])?.map((prop) => (
+              <ScheduleEditor key={prop.id} property={prop} clientId={client.id} />
+            ))}
+            
+            {(!client.properties || (client.properties as any[]).length === 0) && (
+              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Linked Property</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/driver/actions.ts">
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+
+export async function initializeDriverShift(collectionIds: string[], assistantIds: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) return { error: 'Unauthorized.' }
+
+  // Assign the selected assistants AND the current driver to today's collections
+  const { error } = await supabase
+    .from('collections')
+    .update({ 
+      assistant_ids: assistantIds,
+      driver_id: user.id 
+    })
+    .in('id', collectionIds)
+
+  if (error) {
+    console.error('[DB Error] Shift Init:', error)
+    return { error: 'Failed to synchronize shift data with the server.' }
+  }
+  
+  revalidatePath('/driver/dashboard')
+  return { success: true }
+}
+
+export async function submitCollectionOutcome(
+  collectionId: string, 
+  status: 'collected' | 'no_answer' | 'other', 
+  reason?: string, 
+  photoUrl?: string
+) {
+  const supabase = await createClient()
+  
+  const { error } = await supabase
+    .from('collections')
+    .update({ 
+      status: status,
+      outcome_reason: reason || null,
+      proof_photo_url: photoUrl || null,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', collectionId)
+
+  if (error) {
+    console.error('[DB Error] Outcome Submit:', error)
+    return { error: 'Failed to record the collection outcome.' }
+  }
+  
+  revalidatePath('/driver/dashboard')
+  return { success: true }
+}
+</file>
+
 <file path="src/components/driver/RouteMap.tsx">
 'use client'
 
@@ -2610,15 +3437,15 @@ const DriverLiveIcon = L.divIcon({
   iconAnchor: [8, 8]
 })
 
-function parsePostGISPoint(locationStr: string | null): [number, number] {
-  if (!locationStr || !locationStr.startsWith('POINT(')) return [6.5244, 3.3792];
+function parsePostGISPoint(locationStr: string | null):[number, number] {
+  if (!locationStr || !locationStr.startsWith('POINT(')) return[6.5244, 3.3792];
   const cleanStr = locationStr.slice(6, -1);
   const parts = cleanStr.split(' ');
   if (parts.length !== 2) return[6.5244, 3.3792];
   return [parseFloat(parts[1]), parseFloat(parts[0])];
 }
 
-function MapController({ coords, isFullscreen }: { coords: [number, number][], isFullscreen: boolean }) {
+function MapController({ coords, isFullscreen }: { coords:[number, number][], isFullscreen: boolean }) {
   const map = useMap()
   useEffect(() => {
     const timer = setTimeout(() => { map.invalidateSize() }, 250);
@@ -2630,23 +3457,25 @@ function MapController({ coords, isFullscreen }: { coords: [number, number][], i
   return null
 }
 
+// Enterprise Fix: Stripped all PII out. We only need the ID and timestamp.
 interface OfflineAction {
-  colId: string; email: string; clientName: string; address: string; timestamp: number;
+  colId: string; 
+  timestamp: number;
 }
 
 export default function RouteMap({ collections, driverId, driverName }: { collections: any[], driverId: string, driverName: string }) {
   const [localCollections, setLocalCollections] = useState(collections)
-  const[routeData, setRouteData] = useState<[number, number][]>([])
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [routeData, setRouteData] = useState<[number, number][]>([])
+  const[actionLoading, setActionLoading] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const[driverLocation, setDriverLocation] = useState<[number, number] | null>(null)
+  const [driverLocation, setDriverLocation] = useState<[number, number] | null>(null)
   const [isOffline, setIsOffline] = useState(false)
   
-  const [outcomeModal, setOutcomeModal] = useState<any | null>(null)
+  const[outcomeModal, setOutcomeModal] = useState<any | null>(null)
   const [outcomeType, setOutcomeType] = useState<'collected' | 'no_answer' | 'other'>('collected')
-  const [outcomeFile, setOutcomeFile] = useState<File | null>(null)
-  const [outcomeReason, setOutcomeReason] = useState('')
-  const[isSubmittingOutcome, setIsSubmittingOutcome] = useState(false)
+  const[outcomeFile, setOutcomeFile] = useState<File | null>(null)
+  const[outcomeReason, setOutcomeReason] = useState('')
+  const [isSubmittingOutcome, setIsSubmittingOutcome] = useState(false)
 
   const supabase = createClient()
 
@@ -2686,7 +3515,12 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
     for (const action of queue) {
       try {
         await supabase.from('collections').update({ status: 'arrived' }).eq('id', action.colId);
-        await fetch('/api/notify-arrival', { method: 'POST', body: JSON.stringify({ email: action.email, clientName: action.clientName, address: action.address }) });
+        // Clean API call using only the collection ID
+        await fetch('/api/notify-arrival', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ collectionId: action.colId }) 
+        });
       } catch (e) { console.error("Sync failed", e); }
     }
     localStorage.removeItem('spotlex_offline_queue');
@@ -2702,11 +3536,11 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
     return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   },[processOfflineQueue]);
 
-  const stopCoords = useMemo(() => localCollections.map(col => parsePostGISPoint(col.properties.location)),[localCollections]);
+  const stopCoords = useMemo(() => localCollections.map(col => parsePostGISPoint(col.properties.location)), [localCollections]);
   const coordString = useMemo(() => {
     if (stopCoords.length < 2) return null;
     return stopCoords.map(c => `${c[1]},${c[0]}`).join(';');
-  },[stopCoords]);
+  }, [stopCoords]);
 
   useEffect(() => {
     const fetchOptimizedRoute = async () => {
@@ -2729,7 +3563,8 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
 
     if (isOffline) {
       const queue: OfflineAction[] = JSON.parse(localStorage.getItem('spotlex_offline_queue') || '[]');
-      queue.push({ colId: col.id, email: col.properties.profiles.email, clientName: col.properties.profiles.full_name, address: col.properties.address_text, timestamp: Date.now() });
+      // Enterprise Fix: Push only the ID to local storage. Highly secure and matches our type.
+      queue.push({ colId: col.id, timestamp: Date.now() });
       localStorage.setItem('spotlex_offline_queue', JSON.stringify(queue));
       toast.info("Offline: Action logged to device queue.");
       setActionLoading(null);
@@ -2740,10 +3575,11 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
       const { error } = await supabase.from('collections').update({ status: 'arrived' }).eq('id', col.id);
       if (error) throw error;
       toast.success("Arrival logged successfully.");
+
       await fetch('/api/notify-arrival', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: col.properties.profiles.email, clientName: col.properties.profiles.full_name, address: col.properties.address_text })
+        body: JSON.stringify({ collectionId: col.id }) // Clean API payload
       });
     } catch (e) {
       toast.error("Network error. Try again.");
@@ -2901,380 +3737,6 @@ export default function RouteMap({ collections, driverId, driverName }: { collec
         </div>
       )}
     </>
-  )
-}
-</file>
-
-<file path="src/app/admin/actions.ts">
-'use server'
-
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-
-export async function updatePropertyLocation(id: string, lat: number, lon: number, manualAddress?: string) {
-  const supabase = await createClient()
-  let finalAddress = manualAddress;
-  
-  if (!finalAddress) {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, {
-      headers: { 'User-Agent': 'SpotlexWorld/1.0' }
-    })
-    const data = await res.json()
-    finalAddress = data.display_name || 'Updated by Admin'
-  }
-  
-  const { data, error } = await supabase
-    .from('properties')
-    .update({
-      location: `POINT(${lon} ${lat})`,
-      address_text: finalAddress
-    })
-    .eq('id', id)
-    .select() // Forces Supabase to return the updated row
-
-  if (error) throw new Error("Failed to update location in database.")
-  if (!data || data.length === 0) throw new Error("Update blocked by Database Security (RLS). Please apply the Admin SQL patch.")
-  
-  revalidatePath('/admin/dashboard')
-}
-
-export async function updateClientProfile(formData: FormData) {
-  const supabase = await createClient()
-  const id = formData.get('id') as string
-  const full_name = formData.get('full_name') as string
-  const phone = formData.get('phone') as string
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ full_name, phone })
-    .eq('id', id)
-    .select()
-
-  if (error) return { error: "Database error occurred." }
-  if (!data || data.length === 0) return { error: "Update blocked by Database Security (RLS). Please apply the Admin SQL patch." }
-  
-  revalidatePath('/admin/clients')
-  revalidatePath(`/admin/clients/${id}`)
-  return { success: true }
-}
-
-export async function updatePropertySchedule(propertyId: string, clientId: string, dayOfWeek: number) {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from('properties')
-    .update({ collection_day_of_week: dayOfWeek })
-    .eq('id', propertyId)
-    .select()
-
-  if (error) return { error: "Failed to update schedule in database." }
-  if (!data || data.length === 0) return { error: "Action blocked by Database Security (RLS). Please apply the Admin SQL patch." }
-  
-  revalidatePath(`/admin/clients/${clientId}`)
-  return { success: true }
-}
-</file>
-
-<file path="src/app/admin/clients/[id]/page.tsx">
-import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Save, User, Phone, ShieldCheck, CalendarDays } from 'lucide-react'
-import Link from 'next/link'
-import BrandLogo from '@/components/BrandLogo'
-import { updateClientProfile } from '@/app/admin/actions'
-import ScheduleEditor from '@/components/admin/ScheduleEditor'
-
-export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const supabase = await createClient()
-  
-  const { data: client } = await supabase
-    .from('profiles')
-    .select('*, properties(*)')
-    .eq('id', id)
-    .single()
-
-  if (!client) {
-    return (
-      <div className="p-20 text-center">
-        <h2 className="text-2xl font-black text-slate-900">Account not found.</h2>
-        <Link href="/admin/clients" className="text-green-600 font-bold underline mt-4 inline-block">Return to Registry</Link>
-      </div>
-    )
-  }
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 p-4 md:p-0">
-      <div className="flex items-center gap-6">
-        <Link href="/admin/clients" className="p-3 bg-white border border-slate-100 rounded-2xl shadow-xl hover:bg-slate-900 hover:text-white transition-all text-slate-600">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <BrandLogo />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Profile Modification Section */}
-        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 relative overflow-hidden h-fit">
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-             <ShieldCheck className="w-32 h-32 text-slate-900" />
-          </div>
-          
-          <h1 className="text-2xl font-black text-slate-900 mb-2">Modify Profile</h1>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-10">System ID: {client.id.split('-')[0]}</p>
-          
-          {/* Using standard form submission for Profile, catching RLS errors via a wrapper action if needed */}
-          <form action={updateClientProfile} className="space-y-8 relative z-10">
-            <input type="hidden" name="id" value={client.id} />
-            
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Legal Name</label>
-              <div className="relative group">
-                <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
-                <input 
-                  name="full_name"
-                  defaultValue={client.full_name}
-                  required
-                  className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Verified Phone</label>
-              <div className="relative group">
-                <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
-                <input 
-                  name="phone"
-                  defaultValue={client.phone || ''}
-                  className="w-full pl-14 pr-6 py-5 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <button 
-                type="submit"
-                className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-slate-300 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-              >
-                <Save className="w-5 h-5" /> Commit Changes
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Collection Scheduling Section */}
-        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-10 h-fit">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="bg-green-100 p-3 rounded-2xl">
-              <CalendarDays className="w-6 h-6 text-green-700" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Deployment Schedule</h1>
-          </div>
-
-          <div className="space-y-6">
-            {(client.properties as any[])?.map((prop) => (
-              <ScheduleEditor key={prop.id} property={prop} clientId={client.id} />
-            ))}
-            
-            {(!client.properties || (client.properties as any[]).length === 0) && (
-              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Linked Property</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/driver/actions.ts">
-'use server'
-
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-
-/**
- * Initializes a driver's shift by assigning the selected assistants to today's collections.
- * Renamed to bust the Turbopack cache.
- */
-export async function initializeDriverShift(collectionIds: string[], assistantIds: string[]) {
-  const supabase = await createClient()
-  
-  const { error } = await supabase
-    .from('collections')
-    .update({ assistant_ids: assistantIds })
-    .in('id', collectionIds)
-
-  if (error) {
-    console.error('[DB Error] Shift Init:', error)
-    return { error: 'Failed to synchronize shift data with the server.' }
-  }
-  
-  revalidatePath('/driver/dashboard')
-  return { success: true }
-}
-
-/**
- * Logs the final outcome (Collected, No Answer, etc.) and attaches photo proof.
- * Renamed to bust the Turbopack cache.
- */
-export async function submitCollectionOutcome(
-  collectionId: string, 
-  status: 'collected' | 'no_answer' | 'other', 
-  reason?: string, 
-  photoUrl?: string
-) {
-  const supabase = await createClient()
-  
-  const { error } = await supabase
-    .from('collections')
-    .update({ 
-      status: status,
-      outcome_reason: reason || null,
-      proof_photo_url: photoUrl || null,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', collectionId)
-
-  if (error) {
-    console.error('[DB Error] Outcome Submit:', error)
-    return { error: 'Failed to record the collection outcome.' }
-  }
-  
-  revalidatePath('/driver/dashboard')
-  return { success: true }
-}
-</file>
-
-<file path="src/app/page.tsx">
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { Leaf, Map, Truck, BellRing, ArrowRight } from 'lucide-react'
-
-export default async function LandingPage() {
-  const supabase = await createClient()
-  // Check if a user is currently logged in
-  const { data: { user } } = await supabase.auth.getUser()
-
-  return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
-      {/* Navigation */}
-      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-green-700">
-            <Leaf className="w-8 h-8" />
-            <span className="text-2xl font-black tracking-tight">SpotlexWorld</span>
-          </div>
-          <div className="flex items-center gap-4">
-            {user ? (
-              <Link 
-                href="/dashboard" 
-                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200 flex items-center gap-2"
-              >
-                Go to Dashboard <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <>
-                <Link href="/auth/login" className="text-gray-600 hover:text-green-700 font-semibold px-4 py-2 transition">
-                  Log In
-                </Link>
-                <Link 
-                  href="/auth/register" 
-                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block bg-green-50 border border-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-6">
-              SMART WASTE MANAGEMENT
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-tight mb-8">
-              A Cleaner City, <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-400">
-                Delivered Smartly.
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Spotless World connects residents with waste collection teams using real-time GPS routing, instant notifications, and proof of collection to ensure your neighborhood stays pristine.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {user ? (
-                <Link 
-                  href="/dashboard" 
-                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200 flex items-center justify-center gap-2"
-                >
-                  Enter Dashboard <ArrowRight className="w-5 h-5" />
-                </Link>
-              ) : (
-                <>
-                  <Link 
-                    href="/auth/register" 
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200"
-                  >
-                    Register as Resident
-                  </Link>
-                  <Link 
-                    href="/auth/login" 
-                    className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg transition"
-                  >
-                    Team Login
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 md:mt-32">
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-              <div className="bg-blue-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Map className="w-7 h-7 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Precision Geocoding</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Pinpoint your exact address on our interactive map. Our drivers use advanced spatial routing to find your home without confusion.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-              <div className="bg-green-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Truck className="w-7 h-7 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Optimized Routing</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Our administrative engine calculates the fastest Traveling Salesperson route, minimizing fuel and maximizing collection efficiency.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-              <div className="bg-orange-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <BellRing className="w-7 h-7 text-orange-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Real-time Alerts</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Receive instant emails and dashboard notifications the moment our trucks arrive at your gate. No more waiting outside.
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-      
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} SpotlexWorld. All rights reserved.</p>
-      </footer>
-    </div>
   )
 }
 </file>

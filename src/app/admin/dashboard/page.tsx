@@ -11,7 +11,6 @@ export default async function AdminDashboardPage() {
   const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
   const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
   
-  // Added client_remark to the select query for complete Quality Control
   const { data: activeCollections } = await supabase
     .from('collections')
     .select(`
@@ -36,12 +35,13 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* Clean Mobile-Optimized Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-slate-500 font-medium mt-1">Operational command and logistics for SpotlexWorld.</p>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
+          <p className="text-slate-500 font-medium mt-1 text-sm md:text-base">Operational command and logistics for SpotlexWorld.</p>
         </div>
-        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200">
+        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200 w-fit">
           {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
         </div>
       </div>
@@ -98,7 +98,6 @@ export default async function AdminDashboardPage() {
                 <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
                 <p className="text-[10px] font-medium text-slate-400">Crew Size: 1 Driver + {col.assistant_ids?.length || 0} Assistant(s)</p>
 
-                {/* Quality Control Audit Info */}
                 {(col.outcome_reason || col.proof_photo_url || col.client_rating) && (
                   <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
                     {col.outcome_reason && (
@@ -121,7 +120,7 @@ export default async function AdminDashboardPage() {
                     {col.client_remark && (
                       <p className="text-[10px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-start gap-1">
                         <MessageSquare className="w-3 h-3 text-slate-400 mt-0.5 flex-shrink-0" />
-                        <span className="italic">"{col.client_remark}"</span>
+                        <span className="italic">&quot;{col.client_remark}&quot;</span>
                       </p>
                     )}
                   </div>

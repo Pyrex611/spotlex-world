@@ -1,6 +1,7 @@
 'use client'
 
-import { Leaf } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 
 interface LogoProps {
   className?: string
@@ -12,31 +13,32 @@ interface LogoProps {
 
 export default function BrandLogo({ 
   className = "", 
-  iconSize = 20, 
+  iconSize = 36, 
   showText = true,
   textSize = "text-xl",
   dark = false 
 }: LogoProps) {
   return (
-    <div className={`flex items-center gap-2.5 transition-opacity hover:opacity-90 ${className}`}>
-      <div className="relative flex items-center justify-center">
-        {/* The Base Logo Shape */}
-        <div className="bg-green-600 p-1.5 rounded-lg shadow-lg shadow-green-900/20">
-          <Leaf 
-            size={iconSize} 
-            className="text-white fill-white/20" 
-            strokeWidth={2.5}
-          />
-        </div>
-        {/* Aesthetic Dot for Premium Look */}
-        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-slate-900 rounded-full border-2 border-white"></div>
+    <Link href="/" className={`flex items-center gap-3 transition-opacity hover:opacity-90 select-none flex-shrink-0 ${className}`}>
+      <div 
+        className="relative flex items-center justify-center rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-white flex-shrink-0" 
+        style={{ width: iconSize, height: iconSize }}
+      >
+        <Image 
+          src="/spotlex_logo.jpg" 
+          alt="SpotlexWorld Logo" 
+          fill
+          className="object-cover"
+          sizes={`${iconSize}px`}
+          priority
+        />
       </div>
       
       {showText && (
-        <span className={`font-black tracking-tight ${textSize} ${dark ? 'text-white' : 'text-slate-900'}`}>
+        <span className={`font-black tracking-tight ${textSize} ${dark ? 'text-white' : 'text-slate-900'} hidden sm:block`}>
           Spotlex<span className="text-green-600 font-extrabold">World</span>
         </span>
       )}
-    </div>
+    </Link>
   )
 }

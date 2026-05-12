@@ -23,13 +23,13 @@ export default async function LandingPage() {
             ) : (
               <>
                 <Link href="/auth/login" className="text-slate-600 hover:text-slate-900 font-bold text-sm transition hidden sm:block">
-                  Sign In
+                  Login
                 </Link>
                 <Link 
                   href="/auth/register" 
                   className="bg-slate-900 hover:bg-slate-800 text-white px-5 sm:px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200"
                 >
-                  Sign Up
+                  Join Now
                 </Link>
               </>
             )}

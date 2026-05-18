@@ -22,7 +22,7 @@ export async function updatePropertyLocation(id: string, lat: number, lon: numbe
       address_text: finalAddress
     })
     .eq('id', id)
-    .select() // Forces Supabase to return the updated row
+    .select()
 
   if (error) throw new Error("Failed to update location in database.")
   if (!data || data.length === 0) throw new Error("Update blocked by Database Security (RLS). Please apply the Admin SQL patch.")
@@ -64,4 +64,40 @@ export async function updatePropertySchedule(propertyId: string, clientId: strin
   
   revalidatePath(`/admin/clients/${clientId}`)
   return { success: true }
+}
+
+export async function recordManualPayment(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) return { error: "Unauthorized." }
+
+  const invoiceId = formData.get('invoice_id') as string
+  const clientId = formData.get('client_id') as string
+  const amount = Number(formData.get('amount'))
+  const method = formData.get('payment_method') as string
+  const reference = formData.get('reference') as string
+
+  const { error: paymentError } = await supabase.from('payments').insert({
+    invoice_id: invoiceId,
+    client_id: clientId,
+    amount: amount,
+    payment_method: method, 
+    reference: reference || `MANUAL-${Date.now()}`,
+    recorded_by: user.id,
+    status: 'success'
+  });
+
+  if (paymentError) return { error: paymentError.message };
+
+  const { data: invoice } = await supabase.from('invoices').select('total_due').eq('id', invoiceId).single();
+  const currentTotal = Number(invoice?.total_due || 0);
+  
+  const newStatus = amount >= currentTotal ? 'paid' : 'partial';
+
+  await supabase.from('invoices').update({ status: newStatus }).eq('id', invoiceId);
+  
+  revalidatePath(`/admin/clients/${clientId}`);
+  revalidatePath('/admin/dashboard');
+  return { success: true };
 }

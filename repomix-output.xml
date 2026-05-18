@@ -376,184 +376,6 @@ export default async function AdminProfilePage() {
 }
 </file>
 
-<file path="src/app/auth/team-invite/page.tsx">
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Mail, Lock, User, KeyRound, Loader2, ShieldCheck } from 'lucide-react'
-
-const TEAM_ACCESS_CODE = 'SPOTLEX2026'
-
-export default function TeamRegisterPage() {
-  const router = useRouter()
-  const supabase = createClient()
-  
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    accessCode: ''
-  })
-  const [error, setError] = useState<string | null>(null)
-  const[loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    if (formData.accessCode !== TEAM_ACCESS_CODE) {
-      setError("Invalid Team Access Code.")
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      console.log('[Auth] Attempting driver registration for:', formData.email)
-      
-      // 1. Create the Auth User
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            role: 'driver'
-          }
-        }
-      })
-
-      if (authError) throw authError;
-
-      if (authData.user) {
-        console.log('[Auth] Auth account created. Creating driver profile...')
-        
-        // 2. Explicitly create the Public Profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            full_name: formData.fullName,
-            role: 'driver'
-          })
-
-        if (profileError) {
-          console.error('[DB Insert Error]', profileError)
-          throw new Error(`Profile creation failed: ${profileError.message}`)
-        }
-      }
-
-      console.log('[Auth] Complete driver registration successful!')
-      setSuccess(true)
-      setLoading(false)
-      setTimeout(() => router.push('/dashboard'), 2000)
-
-    } catch (err: any) {
-      console.error('[Registration Error]', err)
-      setError(err.message || 'An unexpected internal error occurred.')
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-2xl p-8 border-t-4 border-blue-600">
-        <div className="text-center mb-8 flex flex-col items-center">
-          <div className="bg-blue-100 p-3 rounded-full mb-3">
-            <ShieldCheck className="w-8 h-8 text-blue-700" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">Driver Portal Setup</h1>
-          <p className="text-slate-500 mt-1 text-sm">Authorized personnel only</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm mb-6 text-center border border-blue-200">
-            Account created! Redirecting to dashboard...
-          </div>
-        )}
-
-        <form onSubmit={handleRegister} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Access Code</label>
-            <div className="relative">
-              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                required
-                value={formData.accessCode}
-                onChange={(e) => setFormData({...formData, accessCode: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase"
-                placeholder="Enter Authorization Code"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                required
-                value={formData.fullName}
-                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 outline-none transition"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50 mt-4"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Register as Driver'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
-</file>
-
 <file path="src/app/client/profile/page.tsx">
 import { createClient } from '@/lib/supabase/server'
 import ProfileSettings from '@/components/ProfileSettings'
@@ -1024,51 +846,6 @@ export default function ScheduleEditor({ property, clientId }: ScheduleEditorPro
 }
 </file>
 
-<file path="src/components/BrandLogo.tsx">
-'use client'
-
-import { Leaf } from 'lucide-react'
-
-interface LogoProps {
-  className?: string
-  iconSize?: number
-  showText?: boolean
-  textSize?: string
-  dark?: boolean
-}
-
-export default function BrandLogo({ 
-  className = "", 
-  iconSize = 20, 
-  showText = true,
-  textSize = "text-xl",
-  dark = false 
-}: LogoProps) {
-  return (
-    <div className={`flex items-center gap-2.5 transition-opacity hover:opacity-90 ${className}`}>
-      <div className="relative flex items-center justify-center">
-        {/* The Base Logo Shape */}
-        <div className="bg-green-600 p-1.5 rounded-lg shadow-lg shadow-green-900/20">
-          <Leaf 
-            size={iconSize} 
-            className="text-white fill-white/20" 
-            strokeWidth={2.5}
-          />
-        </div>
-        {/* Aesthetic Dot for Premium Look */}
-        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-slate-900 rounded-full border-2 border-white"></div>
-      </div>
-      
-      {showText && (
-        <span className={`font-black tracking-tight ${textSize} ${dark ? 'text-white' : 'text-slate-900'}`}>
-          Spotlex<span className="text-green-600 font-extrabold">World</span>
-        </span>
-      )}
-    </div>
-  )
-}
-</file>
-
 <file path="src/components/InteractiveMap.tsx">
 'use client'
 
@@ -1528,151 +1305,91 @@ export async function createClient() {
 }
 </file>
 
-<file path="src/app/admin/layout.tsx">
-import { createClient } from '@/lib/supabase/server'
-import UserMenu from '@/components/UserMenu'
-import BrandLogo from '@/components/BrandLogo'
-import { ReactNode } from 'react'
-
-export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user?.id)
-    .single()
-
-  return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
-      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <BrandLogo />
-          {profile && (
-            <UserMenu fullName={profile.full_name} role={profile.role} />
-          )}
-        </div>
-      </header>
-      
-      <main className="flex-1 max-w-7xl mx-auto py-10 w-full animate-in fade-in duration-500">
-        {children}
-      </main>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/auth/login/page.tsx">
+<file path="src/app/auth/team-invite/page.tsx">
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Mail, Lock, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { Mail, Lock, User, KeyRound, Loader2 } from 'lucide-react'
+import BrandLogo from '@/components/BrandLogo'
 
-export default function LoginPage() {
+const TEAM_ACCESS_CODE = 'SPOTLESS2026'
+
+export default function TeamRegisterPage() {
   const router = useRouter()
   const supabase = createClient()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [formData, setFormData] = useState({ fullName: '', email: '', password: '', accessCode: '' })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError(null)
-
+    if (formData.accessCode !== TEAM_ACCESS_CODE) { setError("Invalid Team Access Code."); return }
+    setLoading(true)
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email, password: formData.password, options: { data: { full_name: formData.fullName, role: 'driver' } }
       })
-
-      if (authError) {
-        setError(`Login failed: ${authError.message}`)
-        setLoading(false)
-        return
+      if (authError) throw authError;
+      if (authData.user) {
+        const { error: profileError } = await supabase.from('profiles').insert({ id: authData.user.id, full_name: formData.fullName, role: 'driver' })
+        if (profileError) throw new Error(profileError.message)
       }
-
-      if (data.user) {
-        // Direct Client-Side Routing based on JWT Metadata
-        const role = data.user.user_metadata?.role || 'client'
-        console.log('[Auth] Login successful, routing to:', role)
-        
-        // We use window.location here instead of router.push to force 
-        // a clean state refresh and ensure cookies are picked up
-        window.location.href = `/${role}/dashboard`
-      }
-
-    } catch (err: any) {
-      setError('An unexpected error occurred.')
-      setLoading(false)
-    }
+      setSuccess(true)
+      setTimeout(() => router.push('/dashboard'), 2000)
+    } catch (err: any) { setError(err.message || 'An unexpected error occurred.') } 
+    finally { setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-700">SpotlexWorld</h1>
-          <p className="text-gray-500 mt-2">Sign in to your account</p>
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-10 border-t-8 border-green-600">
+        <div className="text-center mb-10 flex flex-col items-center">
+          <BrandLogo textSize="text-2xl" className="mb-4" />
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Driver Portal</h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Authorized personnel setup</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 border border-red-200">
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-medium mb-6 border border-red-100">{error}</div>}
+        {success && <div className="bg-green-50 text-green-700 p-4 rounded-2xl text-sm font-bold mb-6 text-center border border-green-200">Account created! Redirecting...</div>}
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
-                placeholder="you@example.com"
-              />
+        <form onSubmit={handleRegister} className="space-y-5">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Access Code</label>
+            <div className="relative group">
+              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="text" required value={formData.accessCode} onChange={(e) => setFormData({...formData, accessCode: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none uppercase" placeholder="Enter Code" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="text" required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="password" required minLength={6} value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 font-medium focus:ring-2 focus:ring-green-500 outline-none"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+          <button type="submit" disabled={loading || success} className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-4 rounded-2xl uppercase text-sm tracking-[0.2em] flex items-center justify-center transition-all disabled:opacity-50 mt-2 shadow-xl shadow-green-900/20">
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Register Driver'}
           </button>
         </form>
-
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Don't have an account?{' '}
-          <Link href="/auth/register" className="text-green-600 hover:underline font-medium">
-            Register here
-          </Link>
-        </p>
       </div>
     </div>
   )
@@ -1791,76 +1508,6 @@ export default async function ClientDashboardPage() {
 }
 </file>
 
-<file path="src/app/client/layout.tsx">
-import { createClient } from '@/lib/supabase/server'
-import UserMenu from '@/components/UserMenu'
-import BrandLogo from '@/components/BrandLogo'
-import { ReactNode } from 'react'
-
-export default async function ClientLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user?.id)
-    .single()
-
-  return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
-      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <BrandLogo />
-          {profile && (
-            <UserMenu fullName={profile.full_name} role={profile.role} />
-          )}
-        </div>
-      </header>
-      
-      <main className="flex-1 max-w-7xl mx-auto py-10 w-full">
-        {children}
-      </main>
-    </div>
-  )
-}
-</file>
-
-<file path="src/app/driver/layout.tsx">
-import { createClient } from '@/lib/supabase/server'
-import UserMenu from '@/components/UserMenu'
-import BrandLogo from '@/components/BrandLogo'
-import { ReactNode } from 'react'
-
-export default async function DriverLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user?.id)
-    .single()
-
-  return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
-      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <BrandLogo />
-          {profile && (
-            <UserMenu fullName={profile.full_name} role={profile.role} />
-          )}
-        </div>
-      </header>
-      
-      <main className="flex-1 w-full animate-in fade-in duration-500">
-        {children}
-      </main>
-    </div>
-  )
-}
-</file>
-
 <file path="src/app/layout.tsx">
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
@@ -1891,223 +1538,49 @@ export default function RootLayout({
 }
 </file>
 
-<file path="src/components/client/ClientDashboardView.tsx">
+<file path="src/components/BrandLogo.tsx">
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import BrandLogo from '@/components/BrandLogo'
-import { Calendar, MapPin, Truck, Star, Image as ImageIcon, MessageSquare, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { submitClientFeedback } from '@/app/client/actions'
+import Image from 'next/image'
+import Link from 'next/link'
 
-function StarRating({ value, onChange, disabled }: { value: number, onChange?: (val: number) => void, disabled?: boolean }) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          disabled={disabled}
-          onClick={() => onChange && onChange(star)}
-          className={`focus:outline-none ${disabled ? 'cursor-default' : 'hover:scale-110 transition-transform'}`}
-        >
-          <Star className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`} />
-        </button>
-      ))}
-    </div>
-  )
+interface LogoProps {
+  className?: string
+  iconSize?: number
+  showText?: boolean
+  textSize?: string
+  dark?: boolean
 }
 
-export default function ClientDashboardView({ property, history }: { property: any, history: any[] }) {
-  const supabase = createClient()
-  const [arrivalNotification, setArrivalNotification] = useState<string | null>(null)
-  
-  const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null)
-  const [rating, setRating] = useState(0)
-  const [remark, setRemark] = useState('')
-  const [isPending, startTransition] = useTransition()
-
-  useEffect(() => {
-    if (!property?.id) return;
-
-    const channel = supabase
-      .channel('collection-updates')
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'collections', 
-        filter: `property_id=eq.${property.id}` 
-      },
-      (payload) => {
-        if (payload.new.status === 'arrived') {
-          setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
-          toast.success("🚛 Truck Arrived!", { description: "Our team is at your gate.", duration: 15000 });
-          setTimeout(() => setArrivalNotification(null), 20000)
-        }
-        if (payload.new.status === 'collected') {
-          toast.success("✅ Waste Collected!", { description: "Thank you for using SpotlexWorld." });
-          setTimeout(() => window.location.reload(), 2000);
-        }
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [property?.id, supabase])
-
-  const handleFeedbackSubmit = (colId: string) => {
-    if (rating === 0) { 
-      toast.error("Please select a star rating."); 
-      return; 
-    }
-
-    startTransition(async () => {
-      const response = await submitClientFeedback(colId, rating, remark);
-      if (response.error) {
-        toast.error(response.error);
-      } else {
-        toast.success("Feedback submitted. Thank you!");
-        setActiveFeedbackId(null);
-        window.location.reload(); 
-      }
-    });
-  }
-
+export default function BrandLogo({ 
+  className = "", 
+  iconSize = 36, 
+  showText = true,
+  textSize = "text-xl",
+  dark = false 
+}: LogoProps) {
   return (
-    <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-700 px-4 md:px-0 pb-10">
-      {arrivalNotification && (
-        <div className="fixed top-28 right-6 left-6 md:left-auto md:w-[400px] z-[3000] animate-in slide-in-from-top-10 duration-500">
-          <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border-4 border-green-500 flex items-center gap-6">
-            <div className="bg-green-600 p-3 rounded-2xl animate-bounce">
-              <Truck className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Live Update</p>
-              <p className="text-sm font-bold leading-tight">{arrivalNotification}</p>
-            </div>
-          </div>
-        </div>
+    <Link href="/" className={`flex items-center gap-3 transition-opacity hover:opacity-90 select-none flex-shrink-0 ${className}`}>
+      <div 
+        className="relative flex items-center justify-center rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-white flex-shrink-0" 
+        style={{ width: iconSize, height: iconSize }}
+      >
+        <Image 
+          src="/spotlex_logo.jpg" 
+          alt="SpotlexWorld Logo" 
+          fill
+          className="object-cover"
+          sizes={`${iconSize}px`}
+          priority
+        />
+      </div>
+      
+      {showText && (
+        <span className={`font-black tracking-tight ${textSize} ${dark ? 'text-white' : 'text-slate-900'} hidden sm:block`}>
+          Spotlex<span className="text-green-600 font-extrabold">World</span>
+        </span>
       )}
-
-      <header className="flex justify-between items-center py-6">
-        <BrandLogo />
-        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-200/20 space-y-8">
-          <div className="flex items-center gap-4">
-            <div className="bg-green-100 p-3 rounded-2xl"><MapPin className="w-6 h-6 text-green-700" /></div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pickup Location</h2>
-          </div>
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic font-medium text-slate-600 leading-relaxed">
-            {property.address_text}
-          </div>
-        </div>
-
-        <div className="bg-slate-900 p-8 md:p-10 rounded-[3rem] shadow-2xl shadow-slate-900/40 space-y-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-10"><Calendar className="w-32 h-32" /></div>
-          <h2 className="text-xl font-bold tracking-tight relative z-10">Schedule</h2>
-          <div className="space-y-4 relative z-10">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Collection Day</p>
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
-              <p className="text-2xl font-black italic">
-                {property.collection_day_of_week !== null 
-                  ?['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
-                  : "Pending Assignment"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
-        <div className="p-8 md:p-10 border-b border-slate-50 bg-slate-50/50">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Service History</h2>
-          <p className="text-slate-500 text-sm mt-1 font-medium">Review past collections and provide feedback to our team.</p>
-        </div>
-        
-        <div className="p-4 md:p-10 space-y-6">
-          {history?.map((col: any) => (
-            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between transition-colors hover:border-green-200">
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-black text-slate-900">
-                    {new Date(col.scheduled_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${col.status === 'collected' ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800'}`}>
-                    {col.status.replace('_', ' ')}
-                  </span>
-                </div>
-                {col.outcome_reason && (
-                  <p className="text-sm font-medium text-slate-600 bg-white p-3 rounded-xl border border-slate-200">
-                    <strong className="text-slate-900">Driver Note:</strong> {col.outcome_reason}
-                  </p>
-                )}
-              </div>
-
-              {col.proof_photo_url && (
-                <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-slate-200 hover:border-green-400 transition-colors group">
-                  <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-green-100 transition-colors"><ImageIcon className="w-5 h-5 text-slate-600 group-hover:text-green-700" /></div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proof of Service</p>
-                    <p className="text-sm font-bold text-slate-800">View Photo</p>
-                  </div>
-                </a>
-              )}
-
-              <div className="flex-1 lg:max-w-xs w-full">
-                {col.client_rating ? (
-                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
-                    <StarRating value={col.client_rating} disabled />
-                    {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}
-                  </div>
-                ) : (
-                  <>
-                    {activeFeedbackId === col.id ? (
-                      <div className="bg-white p-4 rounded-2xl border border-green-200 shadow-xl shadow-green-100 space-y-4 animate-in fade-in">
-                        <StarRating value={rating} onChange={setRating} />
-                        <textarea 
-                          value={remark} 
-                          onChange={(e) => setRemark(e.target.value)} 
-                          placeholder="Add a remark (optional)..." 
-                          className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-600 outline-none resize-none" 
-                        />
-                        <div className="flex gap-2">
-                          <button onClick={() => setActiveFeedbackId(null)} className="flex-1 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
-                          <button 
-                            onClick={() => handleFeedbackSubmit(col.id)} 
-                            disabled={isPending} 
-                            className="flex-1 bg-green-600 text-white py-2 text-xs font-bold rounded-lg flex justify-center items-center gap-2 transition active:scale-95 disabled:opacity-50"
-                          >
-                            {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Submit'}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={() => {setActiveFeedbackId(col.id); setRating(0); setRemark('');}} 
-                        className="w-full bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-600 hover:text-slate-900 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                      >
-                        <MessageSquare className="w-4 h-4" /> Leave Feedback
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-          {(!history || history.length === 0) && (
-            <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No past collection logs found.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    </Link>
   )
 }
 </file>
@@ -2246,159 +1719,36 @@ export async function updatePropertySchedule(propertyId: string, clientId: strin
 }
 </file>
 
-<file path="src/app/admin/dashboard/page.tsx">
+<file path="src/app/admin/layout.tsx">
 import { createClient } from '@/lib/supabase/server'
-import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight, Star, Image as ImageIcon, MessageSquare } from 'lucide-react'
-import AdminMapWrapper from '@/components/admin/AdminMapWrapper'
-import Link from 'next/link'
-import 'leaflet/dist/leaflet.css'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
 
-export default async function AdminDashboardPage() {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
-
-  const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
-  const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
+  const { data: { user } } = await supabase.auth.getUser()
   
-  // Added client_remark to the select query for complete Quality Control
-  const { data: activeCollections } = await supabase
-    .from('collections')
-    .select(`
-      id, 
-      status, 
-      property_id,
-      outcome_reason,
-      proof_photo_url,
-      client_rating,
-      client_remark,
-      assistant_ids,
-      driver:profiles!collections_driver_id_fkey(full_name)
-    `)
-    .eq('scheduled_date', today)
-
-  const todayPropertyIds = activeCollections?.map(col => col.property_id) ||[]
-
-  const { data: properties } = await supabase
-    .from('properties')
-    .select('id, address_text, location, client_id, profiles(full_name)')
-    .not('location', 'is', null)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
-          <p className="text-slate-500 font-medium mt-1">Operational command and logistics for SpotlexWorld.</p>
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-3 md:py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
         </div>
-        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200">
-          {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <Link href="/admin/clients">
-          <div className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center gap-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-green-200 cursor-pointer group">
-            <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-lg transition-colors group-hover:bg-green-600">
-              <Users className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">
-                Residents <ArrowUpRight className="w-3.5 h-3.5 text-green-600 opacity-0 group-hover:opacity-100 transition-all" />
-              </p>
-              <p className="text-3xl font-black text-slate-900 tracking-tight">{totalClients || 0}</p>
-            </div>
-          </div>
-        </Link>
-        <StatCard title="Today&apos;s Target" value={stats?.total_scheduled || 0} icon={<ClipboardList className="w-6 h-6" />} color="bg-slate-100 text-slate-900" />
-        <StatCard title="Completed" value={stats?.total_fulfilled || 0} icon={<CheckCircle2 className="w-6 h-6" />} color="bg-green-100 text-green-700" />
-        <StatCard title="Active Shifts" value={stats?.active_drivers || 0} icon={<Truck className="w-6 h-6" />} color="bg-orange-100 text-orange-700" />
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-        <div className="xl:col-span-2 bg-white p-2 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 overflow-hidden relative group">
-          <div className="p-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest">Global Asset Map</h2>
-            </div>
-          </div>
-          <div className="h-[500px] md:h-[650px] w-full rounded-[2.5rem] overflow-hidden border border-slate-50">
-             <AdminMapWrapper properties={properties ||[]} todayPropertyIds={todayPropertyIds} />
-          </div>
-        </div>
-
-        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
-          <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-10 flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-600 rounded-full"></div> Collection Monitor
-          </h2>
-          <div className="space-y-8 overflow-y-auto max-h-[550px] pr-4 custom-scrollbar">
-            {activeCollections?.map((col) => (
-              <div key={col.id} className="relative pl-6 border-l-2 border-slate-100 hover:border-green-500 transition-colors py-1 group">
-                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${col.status === 'collected' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
-                <div className="flex justify-between items-center mb-1">
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SHIFT-LOG</p>
-                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
-                     col.status === 'collected' ? 'bg-green-600 text-white' : 
-                     col.status === 'no_answer' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-500'
-                   }`}>
-                     {col.status.replace('_', ' ')}
-                   </span>
-                </div>
-                <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
-                <p className="text-[10px] font-medium text-slate-400">Crew Size: 1 Driver + {col.assistant_ids?.length || 0} Assistant(s)</p>
-
-                {/* Quality Control Audit Info */}
-                {(col.outcome_reason || col.proof_photo_url || col.client_rating) && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
-                    {col.outcome_reason && (
-                      <p className="text-[10px] font-medium text-slate-600 bg-orange-50 p-2 rounded-lg border border-orange-100">
-                        <strong className="text-orange-800">Note:</strong> {col.outcome_reason}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2">
-                      {col.proof_photo_url && (
-                        <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 hover:text-green-800 bg-green-50 px-2 py-1 rounded-md transition-colors">
-                          <ImageIcon className="w-3 h-3" /> Proof Photo
-                        </a>
-                      )}
-                      {col.client_rating && (
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md">
-                          <Star className="w-3 h-3 fill-yellow-500" /> {col.client_rating}/5
-                        </div>
-                      )}
-                    </div>
-                    {col.client_remark && (
-                      <p className="text-[10px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-start gap-1">
-                        <MessageSquare className="w-3 h-3 text-slate-400 mt-0.5 flex-shrink-0" />
-                        <span className="italic">"{col.client_remark}"</span>
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-            {activeCollections?.length === 0 && (
-              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Active Logs</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function StatCard({ title, value, icon, color }: any) {
-  return (
-    <div className="bg-white p-7 rounded-[2.5rem] border border-slate-50 shadow-xl shadow-slate-200/10 flex items-center gap-6">
-      <div className={`${color} p-4 rounded-2xl shadow-sm`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-        <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
-      </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto py-10 w-full px-4 md:px-8 animate-in fade-in duration-500">
+        {children}
+      </main>
     </div>
   )
 }
@@ -2472,6 +1822,77 @@ export async function POST(req: Request) {
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
+}
+</file>
+
+<file path="src/app/auth/login/page.tsx">
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      if (authError) { setError(`Login failed: ${authError.message}`); setLoading(false); return; }
+      if (data.user) {
+        const role = data.user.user_metadata?.role || 'client'
+        window.location.href = `/${role}/dashboard`
+      }
+    } catch (err: any) { setError('An unexpected error occurred.'); setLoading(false); }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 md:p-10 border border-slate-100">
+        <div className="text-center mb-10 flex flex-col items-center">
+          <BrandLogo textSize="text-2xl" className="mb-4" />
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Welcome Back</h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Sign in to your account</p>
+        </div>
+
+        {error && <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-medium mb-6 border border-red-100">{error}</div>}
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" placeholder="you@example.com" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-green-600" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-slate-900 font-bold focus:ring-2 focus:ring-green-600 transition-all outline-none" placeholder="••••••••" />
+            </div>
+          </div>
+          <button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-black text-white font-black py-4 rounded-2xl uppercase text-sm tracking-[0.2em] flex items-center justify-center transition-all disabled:opacity-50 mt-2 shadow-xl shadow-slate-200">
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+          </button>
+        </form>
+        <p className="text-center text-xs font-bold text-slate-500 mt-8">
+          Don&apos;t have an account? <Link href="/auth/register" className="text-green-600 hover:text-green-700 transition-colors">Register here</Link>
+        </p>
+      </div>
+    </div>
+  )
 }
 </file>
 
@@ -2610,6 +2031,41 @@ export default function RegisterPage() {
           <Link href="/auth/login" className="text-green-600 hover:text-green-700 transition-colors">Sign in</Link>
         </p>
       </div>
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/client/layout.tsx">
+import { createClient } from '@/lib/supabase/server'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
+
+export default async function ClientLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-3 md:py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
+        </div>
+      </header>
+      
+      <main className="flex-1 max-w-7xl mx-auto py-10 w-full px-4 md:px-0">
+        {children}
+      </main>
     </div>
   )
 }
@@ -2760,133 +2216,36 @@ export default async function DriverDashboardPage() {
 }
 </file>
 
-<file path="src/app/page.tsx">
-import Link from 'next/link'
+<file path="src/app/driver/layout.tsx">
 import { createClient } from '@/lib/supabase/server'
-import { Leaf, Map, Truck, BellRing, ArrowRight } from 'lucide-react'
+import UserMenu from '@/components/UserMenu'
+import BrandLogo from '@/components/BrandLogo'
+import { ReactNode } from 'react'
 
-export default async function LandingPage() {
+export default async function DriverLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
-  // Check if a user is currently logged in
   const { data: { user } } = await supabase.auth.getUser()
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user?.id)
+    .single()
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans">
-      {/* Navigation */}
-      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 text-green-700">
-            <Leaf className="w-8 h-8" />
-            <span className="text-2xl font-black tracking-tight">SpotlexWorld</span>
-          </div>
-          <div className="flex items-center gap-4">
-            {user ? (
-              <Link 
-                href="/dashboard" 
-                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200 flex items-center gap-2"
-              >
-                Go to Dashboard <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <>
-                <Link href="/auth/login" className="text-gray-600 hover:text-green-700 font-semibold px-4 py-2 transition">
-                  Log In
-                </Link>
-                <Link 
-                  href="/auth/register" 
-                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-semibold transition shadow-md shadow-green-200"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-          </div>
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col">
+      <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-[1001] px-4 md:px-8 py-3 md:py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <BrandLogo />
+          {profile && (
+            <UserMenu fullName={profile.full_name} role={profile.role} />
+          )}
         </div>
-      </nav>
-
-      {/* Hero Section */}
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block bg-green-50 border border-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-6">
-              SMART WASTE MANAGEMENT
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-tight mb-8">
-              A Cleaner City, <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-400">
-                Delivered Smartly.
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Spotless World connects residents with waste collection teams using real-time GPS routing, instant notifications, and proof of collection to ensure your neighborhood stays pristine.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {user ? (
-                <Link 
-                  href="/dashboard" 
-                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200 flex items-center justify-center gap-2"
-                >
-                  Enter Dashboard <ArrowRight className="w-5 h-5" />
-                </Link>
-              ) : (
-                <>
-                  <Link 
-                    href="/auth/register" 
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-full font-bold text-lg transition shadow-xl shadow-green-200"
-                  >
-                    Register as Resident
-                  </Link>
-                  <Link 
-                    href="/auth/login" 
-                    className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg transition"
-                  >
-                    Team Login
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 md:mt-32">
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-              <div className="bg-blue-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Map className="w-7 h-7 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Precision Geocoding</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Pinpoint your exact address on our interactive map. Our drivers use advanced spatial routing to find your home without confusion.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-              <div className="bg-green-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <Truck className="w-7 h-7 text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Optimized Routing</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Our administrative engine calculates the fastest Traveling Salesperson route, minimizing fuel and maximizing collection efficiency.
-              </p>
-            </div>
-
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
-              <div className="bg-orange-50 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
-                <BellRing className="w-7 h-7 text-orange-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Real-time Alerts</h3>
-              <p className="text-gray-500 leading-relaxed">
-                Receive instant emails and dashboard notifications the moment our trucks arrive at your gate. No more waiting outside.
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
+      </header>
       
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-10 text-center text-gray-400 text-sm">
-        <p>&copy; {new Date().getFullYear()} SpotlexWorld. All rights reserved.</p>
-      </footer>
+      <main className="flex-1 w-full animate-in fade-in duration-500 px-4 md:px-0">
+        {children}
+      </main>
     </div>
   )
 }
@@ -3175,6 +2534,233 @@ export default function GlobalAdminMap(props: GlobalAdminMapProps) {
 }
 </file>
 
+<file path="src/components/client/ClientDashboardView.tsx">
+'use client'
+
+import { useEffect, useState, useTransition } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Calendar, MapPin, Truck, Star, Image as ImageIcon, MessageSquare, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { submitClientFeedback } from '@/app/client/actions'
+
+function StarRating({ value, onChange, disabled }: { value: number, onChange?: (val: number) => void, disabled?: boolean }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange && onChange(star)}
+          className={`focus:outline-none ${disabled ? 'cursor-default' : 'hover:scale-110 transition-transform'}`}
+        >
+          <Star className={`w-6 h-6 ${star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300'}`} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export default function ClientDashboardView({ property, history }: { property: any, history: any[] }) {
+  const supabase = createClient()
+  const [arrivalNotification, setArrivalNotification] = useState<string | null>(null)
+  
+  const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null)
+  const [rating, setRating] = useState(0)
+  const [remark, setRemark] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (!property?.id) return;
+
+    const channel = supabase
+      .channel('collection-updates')
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'collections', 
+        filter: `property_id=eq.${property.id}` 
+      },
+      (payload) => {
+        if (payload.new.status === 'arrived') {
+          setArrivalNotification("Your SpotlexWorld truck has arrived at the gate!")
+          toast.success("🚛 Truck Arrived!", { 
+            description: "Our team is at your gate.", 
+            duration: 15000 
+          });
+          setTimeout(() => setArrivalNotification(null), 20000)
+        }
+        if (payload.new.status === 'collected') {
+          toast.success("✅ Waste Collected!", { 
+            description: "Thank you for using SpotlexWorld." 
+          });
+          setTimeout(() => window.location.reload(), 2000);
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [property?.id, supabase])
+
+  const handleFeedbackSubmit = (colId: string) => {
+    if (rating === 0) { 
+      toast.error("Please select a star rating."); 
+      return; 
+    }
+
+    startTransition(async () => {
+      const response = await submitClientFeedback(colId, rating, remark);
+      
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Feedback submitted. Thank you!");
+        setActiveFeedbackId(null);
+        window.location.reload(); 
+      }
+    });
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-700 px-4 md:px-0 pb-10">
+      {arrivalNotification && (
+        <div className="fixed top-28 right-6 left-6 md:left-auto md:w-[400px] z-[3000] animate-in slide-in-from-top-10 duration-500">
+          <div className="bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl border-4 border-green-500 flex items-center gap-6">
+            <div className="bg-green-600 p-3 rounded-2xl animate-bounce">
+              <Truck className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Live Update</p>
+              <p className="text-sm font-bold leading-tight">{arrivalNotification}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clean Mobile-Optimized Header (Logo removed to prevent duplication) */}
+      <div className="flex justify-between items-center py-2 md:py-6">
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight hidden md:block">Resident Dashboard</h1>
+        <div className="bg-white px-4 py-2 rounded-xl border border-slate-100 text-[10px] font-black text-green-600 uppercase tracking-widest shadow-sm flex items-center gap-2 w-fit">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active Service
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 bg-white p-8 md:p-10 rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-200/20 space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="bg-green-100 p-3 rounded-2xl"><MapPin className="w-6 h-6 text-green-700" /></div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pickup Location</h2>
+          </div>
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic font-medium text-slate-600 leading-relaxed">
+            {property.address_text}
+          </div>
+        </div>
+
+        <div className="bg-slate-900 p-8 md:p-10 rounded-[3rem] shadow-2xl shadow-slate-900/40 space-y-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-10"><Calendar className="w-32 h-32" /></div>
+          <h2 className="text-xl font-bold tracking-tight relative z-10">Schedule</h2>
+          <div className="space-y-4 relative z-10">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Collection Day</p>
+            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+              <p className="text-2xl font-black italic">
+                {property.collection_day_of_week !== null 
+                  ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][property.collection_day_of_week] 
+                  : "Pending Assignment"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/20 overflow-hidden">
+        <div className="p-8 md:p-10 border-b border-slate-50 bg-slate-50/50">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Service History</h2>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Review past collections and provide feedback to our team.</p>
+        </div>
+        
+        <div className="p-4 md:p-10 space-y-6">
+          {history?.map((col: any) => (
+            <div key={col.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-black text-slate-900">
+                    {new Date(col.scheduled_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md ${col.status === 'collected' ? 'bg-green-200 text-green-800' : 'bg-orange-200 text-orange-800'}`}>
+                    {col.status.replace('_', ' ')}
+                  </span>
+                </div>
+                {col.outcome_reason && (
+                  <p className="text-sm font-medium text-slate-600 bg-white p-3 rounded-xl border border-slate-200">
+                    <strong className="text-slate-900">Driver Note:</strong> {col.outcome_reason}
+                  </p>
+                )}
+              </div>
+
+              {col.proof_photo_url && (
+                <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white px-4 py-3 rounded-2xl border border-slate-200 hover:border-green-400 transition-colors group">
+                  <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-green-100 transition-colors"><ImageIcon className="w-5 h-5 text-slate-600 group-hover:text-green-700" /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proof of Service</p>
+                    <p className="text-sm font-bold text-slate-800">View Photo</p>
+                  </div>
+                </a>
+              )}
+
+              <div className="flex-1 lg:max-w-xs w-full">
+                {col.client_rating ? (
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Rating</p>
+                    <StarRating value={col.client_rating} disabled />
+                    {col.client_remark && <p className="text-xs font-medium text-slate-600 italic">"{col.client_remark}"</p>}
+                  </div>
+                ) : (
+                  <>
+                    {activeFeedbackId === col.id ? (
+                      <div className="bg-white p-4 rounded-2xl border border-green-200 shadow-xl shadow-green-100 space-y-4 animate-in fade-in">
+                        <StarRating value={rating} onChange={setRating} />
+                        <textarea 
+                          value={remark} 
+                          onChange={(e) => setRemark(e.target.value)} 
+                          placeholder="Add a remark (optional)..." 
+                          className="w-full bg-slate-50 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-green-600 outline-none resize-none" 
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={() => setActiveFeedbackId(null)} className="flex-1 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                          <button 
+                            onClick={() => handleFeedbackSubmit(col.id)} 
+                            disabled={isPending} 
+                            className="flex-1 bg-green-600 text-white py-2 text-xs font-bold rounded-lg flex justify-center items-center gap-2 transition active:scale-95 disabled:opacity-50"
+                          >
+                            {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Submit'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => {setActiveFeedbackId(col.id); setRating(0); setRemark('');}} 
+                        className="w-full bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-600 hover:text-slate-900 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                      >
+                        <MessageSquare className="w-4 h-4" /> Leave Feedback
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+          {(!history || history.length === 0) && (
+            <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+               <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">No past collection logs found.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
 <file path="src/components/driver/DriverMapWrapper.tsx">
 'use client'
 
@@ -3355,6 +2941,163 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
 }
 </file>
 
+<file path="src/app/admin/dashboard/page.tsx">
+import { createClient } from '@/lib/supabase/server'
+import { Users, Truck, CheckCircle2, Map as MapIcon, ClipboardList, ArrowUpRight, Star, Image as ImageIcon, MessageSquare } from 'lucide-react'
+import AdminMapWrapper from '@/components/admin/AdminMapWrapper'
+import Link from 'next/link'
+import 'leaflet/dist/leaflet.css'
+
+export default async function AdminDashboardPage() {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
+
+  const { data: stats } = await supabase.from('daily_stats').select('*').eq('scheduled_date', today).single()
+  const { count: totalClients } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client')
+  
+  const { data: activeCollections } = await supabase
+    .from('collections')
+    .select(`
+      id, 
+      status, 
+      property_id,
+      outcome_reason,
+      proof_photo_url,
+      client_rating,
+      client_remark,
+      assistant_ids,
+      driver:profiles!collections_driver_id_fkey(full_name)
+    `)
+    .eq('scheduled_date', today)
+
+  const todayPropertyIds = activeCollections?.map(col => col.property_id) ||[]
+
+  const { data: properties } = await supabase
+    .from('properties')
+    .select('id, address_text, location, client_id, profiles(full_name)')
+    .not('location', 'is', null)
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-700">
+      {/* Clean Mobile-Optimized Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Intelligence Dashboard</h1>
+          <p className="text-slate-500 font-medium mt-1 text-sm md:text-base">Operational command and logistics for SpotlexWorld.</p>
+        </div>
+        <div className="bg-slate-900 text-white px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200 w-fit">
+          {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <Link href="/admin/clients">
+          <div className="bg-white p-7 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 flex items-center gap-6 transition-all hover:-translate-y-1 hover:shadow-2xl hover:border-green-200 cursor-pointer group">
+            <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-lg transition-colors group-hover:bg-green-600">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">
+                Residents <ArrowUpRight className="w-3.5 h-3.5 text-green-600 opacity-0 group-hover:opacity-100 transition-all" />
+              </p>
+              <p className="text-3xl font-black text-slate-900 tracking-tight">{totalClients || 0}</p>
+            </div>
+          </div>
+        </Link>
+        <StatCard title="Today&apos;s Target" value={stats?.total_scheduled || 0} icon={<ClipboardList className="w-6 h-6" />} color="bg-slate-100 text-slate-900" />
+        <StatCard title="Completed" value={stats?.total_fulfilled || 0} icon={<CheckCircle2 className="w-6 h-6" />} color="bg-green-100 text-green-700" />
+        <StatCard title="Active Shifts" value={stats?.active_drivers || 0} icon={<Truck className="w-6 h-6" />} color="bg-orange-100 text-orange-700" />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        <div className="xl:col-span-2 bg-white p-2 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 overflow-hidden relative group">
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest">Global Asset Map</h2>
+            </div>
+          </div>
+          <div className="h-[500px] md:h-[650px] w-full rounded-[2.5rem] overflow-hidden border border-slate-50">
+             <AdminMapWrapper properties={properties ||[]} todayPropertyIds={todayPropertyIds} />
+          </div>
+        </div>
+
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30">
+          <h2 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-10 flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-600 rounded-full"></div> Collection Monitor
+          </h2>
+          <div className="space-y-8 overflow-y-auto max-h-[550px] pr-4 custom-scrollbar">
+            {activeCollections?.map((col) => (
+              <div key={col.id} className="relative pl-6 border-l-2 border-slate-100 hover:border-green-500 transition-colors py-1 group">
+                <div className={`absolute left-[-5px] top-1.5 w-2 h-2 rounded-full ${col.status === 'collected' ? 'bg-green-600' : 'bg-slate-300'}`}></div>
+                <div className="flex justify-between items-center mb-1">
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SHIFT-LOG</p>
+                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
+                     col.status === 'collected' ? 'bg-green-600 text-white' : 
+                     col.status === 'no_answer' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-500'
+                   }`}>
+                     {col.status.replace('_', ' ')}
+                   </span>
+                </div>
+                <p className="text-sm font-bold text-slate-800">{(col.driver as any)?.full_name || 'Autonomous'}</p>
+                <p className="text-[10px] font-medium text-slate-400">Crew Size: 1 Driver + {col.assistant_ids?.length || 0} Assistant(s)</p>
+
+                {(col.outcome_reason || col.proof_photo_url || col.client_rating) && (
+                  <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                    {col.outcome_reason && (
+                      <p className="text-[10px] font-medium text-slate-600 bg-orange-50 p-2 rounded-lg border border-orange-100">
+                        <strong className="text-orange-800">Note:</strong> {col.outcome_reason}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {col.proof_photo_url && (
+                        <a href={col.proof_photo_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 hover:text-green-800 bg-green-50 px-2 py-1 rounded-md transition-colors">
+                          <ImageIcon className="w-3 h-3" /> Proof Photo
+                        </a>
+                      )}
+                      {col.client_rating && (
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md">
+                          <Star className="w-3 h-3 fill-yellow-500" /> {col.client_rating}/5
+                        </div>
+                      )}
+                    </div>
+                    {col.client_remark && (
+                      <p className="text-[10px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-start gap-1">
+                        <MessageSquare className="w-3 h-3 text-slate-400 mt-0.5 flex-shrink-0" />
+                        <span className="italic">&quot;{col.client_remark}&quot;</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+            {activeCollections?.length === 0 && (
+              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No Active Logs</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StatCard({ title, value, icon, color }: any) {
+  return (
+    <div className="bg-white p-7 rounded-[2.5rem] border border-slate-50 shadow-xl shadow-slate-200/10 flex items-center gap-6">
+      <div className={`${color} p-4 rounded-2xl shadow-sm`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
+        <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
+      </div>
+    </div>
+  )
+}
+</file>
+
 <file path="src/app/driver/actions.ts">
 'use server'
 
@@ -3410,6 +3153,109 @@ export async function submitCollectionOutcome(
   
   revalidatePath('/driver/dashboard')
   return { success: true }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { Map, Truck, BellRing, ArrowRight } from 'lucide-react'
+import BrandLogo from '@/components/BrandLogo'
+
+export default async function LandingPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  return (
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col font-sans selection:bg-green-100 overflow-x-hidden">
+      <nav className="border-b border-slate-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <BrandLogo />
+          <div className="flex items-center gap-3 sm:gap-6">
+            {user ? (
+              <Link 
+                href="/dashboard" 
+                className="bg-slate-900 hover:bg-slate-800 text-white px-5 sm:px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200 flex items-center gap-2"
+              >
+                Dashboard <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login" className="text-slate-600 hover:text-slate-900 font-bold text-sm transition hidden sm:block">
+                  Login
+                </Link>
+                <Link 
+                  href="/auth/register" 
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-5 sm:px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-lg shadow-slate-200"
+                >
+                  Join Now
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-32">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 tracking-tighter leading-[1.1] md:leading-[0.9] mb-6 md:mb-10">
+              Waste pickup, <br className="hidden sm:block" />
+              <span className="text-green-600 italic">reimagined.</span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-slate-500 mb-10 md:mb-12 font-medium leading-relaxed px-2">
+              SpotlexWorld streamlines urban hygiene with high-precision mapping and real-time logistics.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
+              <Link 
+                href={user ? "/dashboard" : "/auth/register"} 
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-8 md:px-10 py-4 rounded-full font-black text-sm md:text-lg uppercase tracking-widest transition-all shadow-xl shadow-green-200 flex justify-center"
+              >
+                {user ? 'Enter Command Center' : 'Get Started Now'}
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mt-20 md:mt-32 px-4">
+            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/20 hover:-translate-y-2 transition-transform">
+              <div className="bg-blue-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-blue-100">
+                <Map className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-3">Precision Geocoding</h3>
+              <p className="text-slate-500 font-medium leading-relaxed">
+                Pinpoint your exact address on our interactive map. Our drivers use advanced spatial routing to find your home without confusion.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/20 hover:-translate-y-2 transition-transform">
+              <div className="bg-green-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-green-100">
+                <Truck className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-3">Optimized Routing</h3>
+              <p className="text-slate-500 font-medium leading-relaxed">
+                Our administrative engine calculates the fastest route, minimizing fuel and maximizing collection efficiency automatically.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/20 hover:-translate-y-2 transition-transform sm:col-span-2 lg:col-span-1">
+              <div className="bg-orange-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 border border-orange-100">
+                <BellRing className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-3">Real-time Alerts</h3>
+              <p className="text-slate-500 font-medium leading-relaxed">
+                Receive instant emails and dashboard notifications the moment our trucks arrive at your gate. No more waiting outside.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <footer className="border-t border-slate-100 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest bg-white">
+        <p>&copy; {new Date().getFullYear()} SpotlexWorld. All rights reserved.</p>
+      </footer>
+    </div>
+  )
 }
 </file>
 

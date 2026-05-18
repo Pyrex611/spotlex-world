@@ -9,14 +9,12 @@ export default async function ClientDashboardPage() {
 
   if (!user) return null
 
-  // Use maybeSingle() to prevent the 500 error on new accounts
   const { data: property } = await supabase
     .from('properties')
     .select('*')
     .eq('client_id', user.id)
     .maybeSingle()
 
-  // If no property exists, render the Onboarding & Setup Flow
   if (!property) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -29,7 +27,6 @@ export default async function ClientDashboardPage() {
     )
   }
 
-  // If property exists, fetch history for the feedback loop
   const today = new Date().toISOString().split('T')[0]
   const { data: history } = await supabase
     .from('collections')
@@ -39,9 +36,19 @@ export default async function ClientDashboardPage() {
     .lte('scheduled_date', today)
     .order('scheduled_date', { ascending: false })
 
+  const { data: invoices } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('client_id', user.id)
+    .order('due_date', { ascending: false })
+
   return (
-    <div className="animate-in fade-in duration-1000">
-      <ClientDashboardView property={property} history={history ||[]} />
+    <div className="animate-in fade-in duration-1000 px-4 md:px-0">
+      <ClientDashboardView 
+        property={property} 
+        history={history || []} 
+        invoices={invoices || []} 
+      />
     </div>
   )
 }
